@@ -1,0 +1,400 @@
+/* ============================================================================
+   TeraShield — National Disaster Risk Management Portal
+   Global Design System (Government Portal Style)
+   ============================================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap");
+
+:root {
+  /* --- Government palette (tricolour-inspired) --- */
+  --gov-navy: #0b3d6e;
+  --gov-navy-dark: #072a4d;
+  --gov-navy-light: #144a86;
+  --gov-saffron: #ff9933;
+  --gov-saffron-dark: #e0761a;
+  --gov-green: #138808;
+  --gov-green-dark: #0d6006;
+  --gov-white: #ffffff;
+  --gov-gold: #b8860b;
+
+  /* --- Semantic / functional colors --- */
+  --primary-color: var(--gov-navy);
+  --primary-dark: var(--gov-navy-dark);
+  --secondary-color: #4a4a4a;
+  --success-color: var(--gov-green);
+  --warning-color: var(--gov-saffron);
+  --danger-color: #c62828;
+  --link-color: #0b3d6e;
+
+  /* --- Surfaces --- */
+  --page-bg: #eef2f6;
+  --surface: #ffffff;
+  --surface-alt: #f4f7fa;
+  --border-color: #d3dbe3;
+  --border-strong: #aab8c6;
+  --text-color: #1c2b3a;
+  --text-muted: #5a6b7b;
+
+  /* --- Risk zone colors (official alert convention) --- */
+  --red-zone: #c62828;
+  --orange-zone: #e0761a;
+  --yellow-zone: #b8860b;
+  --green-zone: #0d6006;
+
+  /* --- Elevation --- */
+  --shadow-sm: 0 1px 3px rgba(11, 61, 110, 0.12);
+  --shadow-md: 0 2px 8px rgba(11, 61, 110, 0.14);
+  --shadow-lg: 0 6px 20px rgba(11, 61, 110, 0.18);
+
+  /* --- Radii --- */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+
+  /* --- Type --- */
+  --font-base: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-base);
+  background-color: var(--page-bg);
+  color: var(--text-color);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 700;
+  color: var(--gov-navy-dark);
+}
+
+a {
+  color: var(--link-color);
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: var(--primary-color);
+  color: white;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.2px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  background-color: var(--primary-dark);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--gov-saffron);
+  outline-offset: 1px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  width: 100%;
+  max-width: 100%;
+  background: var(--surface);
+  color: var(--text-color);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--gov-navy);
+  box-shadow: 0 0 0 3px rgba(11, 61, 110, 0.15);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+th {
+  background-color: var(--gov-navy);
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+tr:hover {
+  background-color: var(--surface-alt);
+}
+
+/* --- Shared surface / section container used across pages --- */
+.section-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.spinner {
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--gov-navy);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  color: var(--danger-color);
+  padding: 16px;
+  background-color: #fdecea;
+  border: 1px solid #f5c6cb;
+  border-left: 4px solid var(--danger-color);
+  border-radius: var(--radius-sm);
+  margin: 16px;
+}
+
+.error-banner {
+  background-color: #fdecea;
+  color: var(--danger-color);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  border-left: 4px solid var(--danger-color);
+  font-weight: 500;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.back-button {
+  background-color: var(--secondary-color);
+  margin-bottom: 16px;
+}
+
+.back-button:hover {
+  background-color: #333333;
+}
+
+/* --- Risk Badges (official alert-level convention) --- */
+.risk-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.risk-badge.red {
+  background-color: var(--red-zone);
+  color: white;
+}
+
+.risk-badge.orange {
+  background-color: var(--orange-zone);
+  color: white;
+}
+
+.risk-badge.yellow {
+  background-color: var(--yellow-zone);
+  color: white;
+}
+
+.risk-badge.green {
+  background-color: var(--green-zone);
+  color: white;
+}
+
+/* ---- Test data / dev tools (shared across pages) ---- */
+.test-data-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  background: var(--gov-saffron-dark);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  vertical-align: middle;
+}
+
+.scenario-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff4e5;
+  border: 1px solid var(--gov-saffron-dark);
+  border-left: 4px solid var(--gov-saffron-dark);
+  color: #7a4a0a;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.scenario-banner button {
+  background: var(--gov-saffron-dark);
+  padding: 5px 12px;
+  font-size: 12px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.dev-tools-panel {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-alt);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.dev-tools-toggle {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: var(--gov-navy-dark);
+  border: none;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 0;
+}
+
+.dev-tools-toggle:hover {
+  background: #e6eef7;
+}
+
+.dev-tools-body {
+  padding: 0 16px 16px;
+}
+
+.dev-tools-body p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.scenario-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.scenario-btn {
+  background: var(--surface);
+  color: var(--gov-navy-dark);
+  border: 1px solid var(--border-strong);
+  font-size: 12.5px;
+  padding: 8px 14px;
+}
+
+.scenario-btn:hover:not(:disabled) {
+  background: var(--gov-navy);
+  color: white;
+}
+
+/* --- Utility: official section heading with left rule --- */
+.gov-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--gov-navy);
+}
+
+.gov-heading::before {
+  content: "";
+  width: 5px;
+  height: 22px;
+  background: linear-gradient(var(--gov-saffron), var(--gov-navy) 50%, var(--gov-green));
+  border-radius: 2px;
+}
+
+.gov-heading h1,
+.gov-heading h2 {
+  font-size: 19px;
+  color: var(--gov-navy-dark);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 8px;
+  }
+}

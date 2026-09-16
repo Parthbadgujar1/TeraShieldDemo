@@ -1,0 +1,233 @@
+.exposure-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  width: 100%;
+}
+
+.exposure-container > h1 {
+  font-size: 21px;
+  color: var(--gov-navy-dark);
+  margin-bottom: 18px;
+}
+
+.exposure-section {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 26px;
+  box-shadow: var(--shadow-sm);
+  margin-top: 24px;
+}
+
+.exposure-section h2 {
+  font-size: 18px;
+  color: var(--gov-navy-dark);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--gov-navy);
+}
+
+.exposure-section h3 {
+  font-size: 14.5px;
+  color: var(--gov-navy-dark);
+  margin: 20px 0 12px;
+}
+
+/* ---- Vulnerability bands ---- */
+.vuln-bands {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.vuln-band {
+  border: 1px solid var(--border-color);
+  border-top: 4px solid #ccc;
+  border-radius: var(--radius-md);
+  background: var(--surface-alt);
+  padding: 16px 18px;
+  text-align: center;
+}
+
+.vuln-band-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--gov-navy-dark);
+}
+
+.vuln-band-label {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.vuln-band.high {
+  border-top-color: var(--danger-color);
+}
+
+.vuln-band.medium {
+  border-top-color: var(--gov-saffron-dark);
+}
+
+.vuln-band.low {
+  border-top-color: var(--gov-green-dark);
+}
+
+/* ---- Factors table ---- */
+.factors-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.factors-table th {
+  background: var(--gov-navy);
+  color: white;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.factors-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.factors-table tr:nth-child(even) {
+  background: var(--surface-alt);
+}
+
+.factor-name {
+  text-transform: capitalize;
+  font-weight: 600;
+  color: var(--gov-navy-dark);
+}
+
+.severity {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: white;
+}
+
+.severity.high {
+  background: var(--danger-color);
+}
+
+.severity.medium {
+  background: var(--gov-saffron-dark);
+}
+
+.severity.low {
+  background: var(--gov-green-dark);
+}
+
+/* ---- Risk matrix ---- */
+.risk-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.risk-matrix-card {
+  border: 1px solid var(--border-color);
+  border-left: 4px solid #ccc;
+  border-radius: var(--radius-md);
+  background: var(--surface-alt);
+  padding: 16px 18px;
+}
+
+.rm-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--gov-navy-dark);
+}
+
+.rm-label {
+  margin-top: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--gov-navy-dark);
+}
+
+.rm-desc {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.risk-matrix-card.very-high {
+  border-left-color: var(--danger-color);
+}
+
+.risk-matrix-card.high {
+  border-left-color: var(--gov-saffron-dark);
+}
+
+.risk-matrix-card.medium {
+  border-left-color: var(--gov-gold);
+}
+
+.risk-matrix-card.low {
+  border-left-color: var(--gov-green-dark);
+}
+
+.cascading-dependency-banner {
+  background: #fdecea;
+  border: 1px solid var(--danger-color);
+  border-left: 4px solid var(--danger-color);
+  color: #7a1f1f;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.sector-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -8px 0 16px;
+}
+
+.sector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.sector-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px 10px;
+}
+
+.sector-icon {
+  font-size: 18px;
+}
+
+.sector-value {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--gov-navy-dark);
+}
+
+.sector-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}

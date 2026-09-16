@@ -1,0 +1,72 @@
+.kpi-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-top: 3px solid var(--gov-navy);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-card.danger {
+  border-top-color: var(--danger-color);
+}
+
+.kpi-card.alert {
+  border-top-color: var(--gov-saffron-dark);
+}
+
+.kpi-icon {
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-alt);
+  border-radius: 8px;
+}
+
+.kpi-content {
+  min-width: 0;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gov-navy-dark);
+  line-height: 1.1;
+}
+
+.kpi-card.danger .kpi-value {
+  color: var(--danger-color);
+}
+
+.kpi-card.alert .kpi-value {
+  color: var(--gov-saffron-dark);
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}

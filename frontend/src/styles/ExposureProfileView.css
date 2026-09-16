@@ -1,0 +1,123 @@
+.exposure-profile-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.epv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.epv-section {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.epv-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gov-navy-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--gov-navy);
+}
+
+.epv-icon {
+  font-size: 15px;
+}
+
+.epv-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.epv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  padding: 3px 0;
+}
+
+.epv-row-label {
+  color: var(--text-muted);
+}
+
+.epv-row-value {
+  font-weight: 600;
+  color: var(--gov-navy-dark);
+  text-align: right;
+}
+
+.epv-row-highlight .epv-row-label {
+  color: var(--gov-navy-dark);
+  font-weight: 600;
+}
+
+.epv-row-highlight .epv-row-value {
+  color: var(--gov-saffron-dark);
+  font-size: 13.5px;
+}
+
+.epv-note {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.epv-rating {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+}
+
+.epv-rating-high {
+  background: var(--danger-color);
+}
+
+.epv-rating-medium {
+  background: var(--gov-saffron-dark);
+}
+
+.epv-rating-low {
+  background: var(--gov-green-dark);
+}
+
+.epv-confidence {
+  background: var(--surface-alt);
+  border-left: 4px solid var(--gov-navy);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+
+.epv-confidence strong {
+  font-size: 12.5px;
+  color: var(--gov-navy-dark);
+}
+
+.epv-confidence p {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}

@@ -1,0 +1,284 @@
+.gis-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  width: 100%;
+}
+
+.gis-container > h1 {
+  font-size: 21px;
+  color: var(--gov-navy-dark);
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gov-navy);
+}
+
+.gis-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.gis-controls .filter-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gis-controls .filter-controls label {
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.gis-controls select {
+  min-width: 200px;
+  padding: 9px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.layer-toggles {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.layer-toggles label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gov-navy-dark);
+  cursor: pointer;
+}
+
+.layer-toggles input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* ---- Layout: map + side panel ---- */
+.gis-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  /* grid items default to min-width:auto, which lets a wide child (the
+     Leaflet map) force this whole row past the container's width instead
+     of shrinking to its track — min-width:0 here is what actually
+     enforces the column tracks above. */
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .gis-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gis-map-panel {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  /* Leaflet's own controls (zoom, layers) use z-index up to 1000 — well
+     above our sticky header's (100/200). isolation:isolate contains that
+     entire stacking order inside this panel so it can never render on top
+     of the header (or anything else outside the panel) while scrolling. */
+  isolation: isolate;
+  position: relative;
+  z-index: 0;
+}
+
+.gis-map {
+  width: 100%;
+  max-width: 100%;
+  height: 560px;
+}
+
+
+@media (max-width: 600px) {
+  .gis-map {
+    height: 380px;
+  }
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-color);
+  background: var(--surface-alt);
+  font-size: 12px;
+  color: var(--text-color);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-item i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Map popup content (Leaflet renders this outside our normal tree) ---- */
+.map-popup {
+  font-size: 12.5px;
+  line-height: 1.6;
+  min-width: 170px;
+}
+
+.map-popup strong {
+  font-size: 13.5px;
+  color: var(--gov-navy-dark);
+}
+
+.popup-test-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--gov-saffron-dark);
+  color: white;
+  font-size: 9.5px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.popup-link {
+  margin-top: 6px;
+  background: var(--gov-navy);
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.popup-link:hover {
+  background: var(--gov-navy-dark);
+}
+
+.popup-directions-link {
+  display: block;
+  margin-top: 6px;
+  background: #1a73e8;
+  color: white;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.popup-directions-link:hover {
+  background: #1558b0;
+}
+
+/* ---- Side panel ---- */
+.gis-side-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.gis-panel-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 20px;
+}
+
+.gis-panel-card h2 {
+  font-size: 14.5px;
+  color: var(--gov-navy-dark);
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--gov-navy);
+}
+
+.empty-note {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 16px 0;
+}
+
+.gis-alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.gis-alert {
+  border-left: 4px solid #ccc;
+  background: var(--surface-alt);
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+
+.gis-alert-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gov-navy-dark);
+  margin-bottom: 4px;
+}
+
+.gis-alert-desc {
+  font-size: 12px;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.gis-alert-action {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--gov-navy);
+}
+
+.gis-alert.critical {
+  border-left-color: var(--danger-color);
+}
+
+.gis-alert.high {
+  border-left-color: var(--gov-saffron-dark);
+}
+
+.gis-alert.medium {
+  border-left-color: var(--gov-gold);
+}
+
+.gis-alert.low {
+  border-left-color: var(--gov-green-dark);
+}

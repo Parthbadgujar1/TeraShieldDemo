@@ -1,0 +1,279 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--page-bg);
+  padding: 24px;
+}
+
+.login-shell {
+  width: 100%;
+  max-width: 1040px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  min-height: 620px;
+}
+
+/* ---- Left info panel ---- */
+.login-info-panel {
+  position: relative;
+  background: linear-gradient(160deg, var(--gov-navy-dark) 0%, var(--gov-navy) 55%, var(--gov-navy-light) 100%);
+  color: white;
+  padding: 44px 40px;
+  display: flex;
+  align-items: center;
+}
+
+.info-panel-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 85% 15%, rgba(255, 153, 51, 0.18), transparent 45%),
+    radial-gradient(circle at 10% 90%, rgba(19, 136, 8, 0.22), transparent 45%);
+  pointer-events: none;
+}
+
+.info-panel-content {
+  position: relative;
+  z-index: 1;
+}
+
+.info-panel-emblem {
+  margin-bottom: 16px;
+}
+
+.info-panel-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gov-saffron);
+  margin-bottom: 8px;
+}
+
+.info-panel-content h1 {
+  font-size: 34px;
+  color: white;
+  margin-bottom: 6px;
+}
+
+.info-panel-tagline {
+  font-size: 14.5px;
+  color: #cfe0f2;
+  margin: 0 0 28px 0;
+  line-height: 1.5;
+  max-width: 380px;
+}
+
+.info-panel-features {
+  list-style: none;
+  margin: 0 0 28px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-panel-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.feature-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.info-panel-features strong {
+  display: block;
+  font-size: 13.5px;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.info-panel-features span {
+  font-size: 12.5px;
+  color: #b6c9de;
+  line-height: 1.4;
+}
+
+.info-panel-footer {
+  font-size: 11.5px;
+  color: #8ea3bb;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 14px;
+}
+
+/* ---- Right form panel ---- */
+.login-form-panel {
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 44px 40px;
+}
+
+.login-form-card {
+  width: 100%;
+  max-width: 360px;
+}
+
+.login-form-header {
+  margin-bottom: 26px;
+}
+
+.login-form-header h2 {
+  font-size: 21px;
+  color: var(--gov-navy-dark);
+  margin-bottom: 6px;
+}
+
+.login-form-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.login-form {
+  margin-bottom: 22px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-color);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--gov-navy);
+  box-shadow: 0 0 0 3px rgba(11, 61, 110, 0.12);
+}
+
+.error-message {
+  color: var(--danger-color);
+  font-size: 13px;
+  margin: 12px 0;
+  padding: 10px 12px;
+  background-color: #fdecea;
+  border-left: 3px solid var(--danger-color);
+  border-radius: 4px;
+}
+
+.login-button {
+  width: 100%;
+  padding: 13px;
+  background: var(--gov-navy);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: background-color 0.2s;
+}
+
+.login-button:hover:not(:disabled) {
+  background: var(--gov-navy-dark);
+}
+
+.login-button:disabled {
+  opacity: 0.7;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.login-info-box {
+  background: var(--surface-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+}
+
+.cred-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.cred-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.cred-row code {
+  background: white;
+  border: 1px solid var(--border-color);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+  color: var(--gov-navy-dark);
+}
+
+.login-security-note {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .login-info-panel {
+    padding: 32px 28px;
+  }
+
+  .info-panel-features {
+    display: none;
+  }
+}

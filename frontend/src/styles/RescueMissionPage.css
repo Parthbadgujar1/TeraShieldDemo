@@ -1,0 +1,327 @@
+.rmp-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rmp-back {
+  align-self: flex-start;
+  background: var(--surface-alt);
+  color: var(--gov-navy-dark);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  font-size: 12.5px;
+}
+
+.rmp-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.rmp-header h1 {
+  font-size: 22px;
+  color: var(--gov-navy-dark);
+  margin: 0;
+}
+
+.rmp-hazard-badge {
+  padding: 5px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: white;
+}
+
+.rmp-risk-red { background: var(--danger-color); }
+.rmp-risk-orange { background: var(--gov-saffron-dark); }
+.rmp-risk-yellow { background: var(--gov-gold); }
+.rmp-risk-green { background: var(--gov-green-dark); }
+
+.rmp-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: -10px 0 0;
+  text-transform: capitalize;
+}
+
+/* ---- Isolation banner (reuses the same visual language as RelocationPlanView) ---- */
+.rmp-isolation-banner {
+  background: #fdecea;
+  border: 2px solid var(--danger-color);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+}
+
+.rmp-isolation-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--danger-color);
+  margin-bottom: 12px;
+}
+
+.rmp-isolation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.rmp-isolation-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: white;
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+
+.rmp-isolation-grid span {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.rmp-isolation-grid strong {
+  font-size: 14px;
+  color: var(--gov-navy-dark);
+}
+
+.rmp-isolation-action {
+  background: var(--danger-color);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.rmp-note {
+  font-size: 11.5px;
+  color: #7a1f1f;
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+/* ---- Cards ---- */
+.rmp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.rmp-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+}
+
+.rmp-card h3 {
+  font-size: 12.5px;
+  text-transform: uppercase;
+  color: var(--gov-navy-dark);
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #7a1215;
+}
+
+.rmp-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  padding: 4px 0;
+  color: var(--text-muted);
+}
+
+.rmp-row strong {
+  color: var(--gov-navy-dark);
+}
+
+.rmp-row.highlight strong {
+  color: var(--danger-color);
+  font-size: 14px;
+}
+
+.rmp-access-open { color: var(--gov-green-dark) !important; }
+.rmp-access-at_risk { color: var(--gov-saffron-dark) !important; }
+.rmp-access-blocked { color: var(--danger-color) !important; }
+
+.rmp-comm {
+  font-size: 10.5px !important;
+  font-weight: 500 !important;
+  color: var(--text-muted) !important;
+}
+
+/* ---- Sections ---- */
+.rmp-section {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+}
+
+.rmp-section h3 {
+  font-size: 12.5px;
+  text-transform: uppercase;
+  color: var(--gov-navy-dark);
+  margin: 0 0 10px;
+}
+
+.rmp-operation-badge {
+  display: inline-block;
+  padding: 10px 18px;
+  background: #7a1215;
+  color: white;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.rmp-reasoning {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.rmp-routes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.rmp-routes-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.rmp-routes-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rmp-best {
+  background: #fff8ec;
+}
+
+.rmp-best-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: #7a1215;
+  color: white;
+  border-radius: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.rmp-route-status {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: white;
+}
+
+.rmp-status-open { background: var(--gov-green-dark); }
+.rmp-status-at_risk { background: var(--gov-saffron-dark); }
+.rmp-status-blocked { background: var(--danger-color); }
+
+.rmp-directions {
+  color: #1a73e8;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.rmp-resources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.rmp-resources > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface-alt);
+  border-radius: 4px;
+  padding: 10px;
+  text-align: center;
+}
+
+.rmp-resources span {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.rmp-resources strong {
+  font-size: 18px;
+  color: var(--gov-navy-dark);
+}
+
+.rmp-resource-note {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color);
+}
+
+/* ---- Footer ---- */
+.rmp-footer {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: #7a1215;
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+}
+
+.rmp-footer > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: white;
+}
+
+.rmp-footer span {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.rmp-footer strong {
+  font-size: 15px;
+}
+
+.rmp-footer .rmp-status {
+  margin-left: auto;
+  justify-content: center;
+}
+
+.rmp-footer .rmp-status strong {
+  color: #ffd27f;
+}
+
+.rmp-human-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  text-align: center;
+  padding: 0 10px;
+}
