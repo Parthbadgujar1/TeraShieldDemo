@@ -416,8 +416,7 @@ def compute_hazard(village: dict) -> dict:
         ],
     }
 
-    # Weighted fusion — same weights/thresholds as the project's Engine-1
-    # reference implementation (hazards-main/backend/fusion/red_zone.py).
+    # Weighted fusion across the 4 hazard types into one RED/ORANGE/YELLOW/GREEN category.
     weights = {"flood": 0.35, "landslide": 0.30, "coastal_erosion": 0.20, "cloudburst": 0.15}
     multi_hazard = sum(scores[k] * weights[k] for k in weights)
     multi_hazard = round(_clamp01(multi_hazard), 3)

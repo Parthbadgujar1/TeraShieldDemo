@@ -1,178 +1,79 @@
-import React, { useState } from "react";
-import "../styles/LoginPage.css";
+import { useState, type FormEvent } from "react";
+import { Emblem } from "../components/Layout";
+import { login, type Session } from "../lib/auth";
 
-interface LoginPageProps {
-  onLogin: (token: string, scope: string) => void;
-}
+const FEATURES = [
+  ["Multi-hazard red zones", "Flood, landslide, cloudburst, coastal erosion, cyclone and heatwave probability for 594 districts."],
+  ["Exposure & vulnerability", "Who and what sits in each hazard footprint, and how badly they would be hurt."],
+  ["Relocation intelligence", "Safe destinations, carrying capacity, hazard-aware road routes and a phased evacuation plan."],
+  ["Live 72-hour outlook", "Red zones re-scored from the current weather forecast — not a frozen map."],
+];
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState("sih");
-  const [password, setPassword] = useState("sih2026");
+export default function LoginPage({ onLogin }: { onLogin: (s: Session) => void }) {
+  const [user, setUser] = useState("sih");
+  const [pass, setPass] = useState("sih2026");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const response = await fetch("/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
-      });
-
-      if (!response.ok) {
-        throw new Error("Invalid credentials");
-      }
-
-      const data = await response.json();
-      onLogin(data.token, data.scope || "admin");
-    } catch (err) {
-      setError("Login failed. Please verify your credentials and try again.");
-    } finally {
-      setLoading(false);
-    }
+    const s = login(user, pass);
+    if (!s) setError("Incorrect user ID or password. Use one of the demo accounts below.");
+    else onLogin(s);
   };
 
   return (
     <div className="login-page">
+      <div className="tri" aria-hidden="true" />
       <div className="login-shell">
-        {/* Left informational panel */}
-        <div className="login-info-panel">
-          <div className="info-panel-overlay" />
-          <div className="info-panel-content">
-            <div className="info-panel-emblem">
-              <svg viewBox="0 0 64 64" width="56" height="56">
-                <circle cx="32" cy="32" r="30" fill="none" stroke="#ffffff" strokeWidth="2.5" />
-                <circle cx="32" cy="32" r="24" fill="none" stroke="#ff9933" strokeWidth="1.4" />
-                {Array.from({ length: 24 }).map((_, i) => {
-                  const angle = (i * 360) / 24;
-                  const rad = (angle * Math.PI) / 180;
-                  const x1 = 32 + 15 * Math.cos(rad);
-                  const y1 = 32 + 15 * Math.sin(rad);
-                  const x2 = 32 + 22 * Math.cos(rad);
-                  const y2 = 32 + 22 * Math.sin(rad);
-                  return (
-                    <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#ffffff" strokeWidth="1" />
-                  );
-                })}
-                <circle cx="32" cy="32" r="6" fill="#138808" />
-                <circle cx="32" cy="32" r="3" fill="#ffffff" />
-              </svg>
-            </div>
-            <div className="info-panel-eyebrow">Smart India Hackathon 2026</div>
-            <h1>TeraShield</h1>
-            <p className="info-panel-tagline">
-              National Disaster Risk Intelligence &amp; Relocation Portal
-            </p>
+        <section className="login-info" aria-label="About TeraShield">
+          <Emblem size={58} />
+          <p className="eyebrow">Smart India Hackathon 2026 · PS 26191</p>
+          <h1>TeraShield</h1>
+          <p className="lead">
+            Intelligent identification of hazard-based red zones, carrying-capacity assessment and immediate relocation
+            needs for vulnerable habitations.
+          </p>
+          <ul>
+            {FEATURES.map(([t, d]) => (
+              <li key={t}><b>{t}</b><span>{d}</span></li>
+            ))}
+          </ul>
+          <p className="foot">Ministry of Home Affairs · National Disaster Response Force (NDRF), DM Division</p>
+        </section>
 
-            <ul className="info-panel-features">
-              <li>
-                <span className="feature-icon">🎯</span>
-                <div>
-                  <strong>Hazard Intelligence</strong>
-                  <span>Multi-hazard RED / ORANGE / YELLOW / GREEN zone classification</span>
-                </div>
-              </li>
-              <li>
-                <span className="feature-icon">👥</span>
-                <div>
-                  <strong>Exposure &amp; Vulnerability</strong>
-                  <span>Population, asset and infrastructure risk assessment</span>
-                </div>
-              </li>
-              <li>
-                <span className="feature-icon">📍</span>
-                <div>
-                  <strong>Relocation Intelligence</strong>
-                  <span>Site suitability, carrying capacity &amp; prioritised relocation</span>
-                </div>
-              </li>
-              <li>
-                <span className="feature-icon">📊</span>
-                <div>
-                  <strong>Integrated GIS Dashboard</strong>
-                  <span>Real-time monitoring across all four engines</span>
-                </div>
-              </li>
-            </ul>
-
-            <div className="info-panel-footer">
-              Prototype system · Data shown is simulated for demonstration
+        <section className="login-form" aria-label="Sign in">
+          <form onSubmit={submit}>
+            <h2>Secure portal login</h2>
+            <p className="muted small">Authorised personnel only</p>
+            <div className="field" style={{ marginTop: 16 }}>
+              <label htmlFor="u">User ID</label>
+              <input id="u" type="text" value={user} onChange={(e) => setUser(e.target.value)} autoComplete="username" required />
             </div>
+            <div className="field" style={{ marginTop: 12 }}>
+              <label htmlFor="p">Password</label>
+              <input id="p" type="password" value={pass} onChange={(e) => setPass(e.target.value)} autoComplete="current-password" required />
+            </div>
+            {error && <div className="notice err" role="alert" style={{ marginTop: 12 }}>{error}</div>}
+            <button className="btn" style={{ width: "100%", justifyContent: "center", marginTop: 16, padding: "11px 14px" }} type="submit">
+              Sign in to portal →
+            </button>
+          </form>
+
+          <div className="demo-creds">
+            <div className="label">Demo access</div>
+            <button type="button" onClick={() => { setUser("sih"); setPass("sih2026"); setError(""); }}>
+              <span>Admin · State Disaster Management</span><code>sih / sih2026</code>
+            </button>
+            <button type="button" onClick={() => { setUser("rescue"); setPass("rescue2026"); setError(""); }}>
+              <span>Emergency Response Team</span><code>rescue / rescue2026</code>
+            </button>
           </div>
-        </div>
-
-        {/* Right login form panel */}
-        <div className="login-form-panel">
-          <div className="login-form-card">
-            <div className="login-form-header">
-              <h2>Secure Portal Login</h2>
-              <p>Authorised personnel access only</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
-              <div className="form-group">
-                <label htmlFor="username">User ID</label>
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter User ID"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter Password"
-                  required
-                />
-              </div>
-
-              {error && (
-                <div className="error-message" role="alert">
-                  ⚠ {error}
-                </div>
-              )}
-
-              <button type="submit" disabled={loading} className="login-button">
-                {loading ? "Authenticating..." : "Login to Portal →"}
-              </button>
-            </form>
-
-            <div className="login-divider">
-              <span>Demo Access Credentials</span>
-            </div>
-
-            <div className="login-info-box">
-              <div className="cred-row">
-                <span className="cred-label">Admin Portal</span>
-                <code>sih / sih2026</code>
-              </div>
-              <div className="cred-row">
-                <span className="cred-label">🚨 Emergency Response Team</span>
-                <code>rescue / rescue2026</code>
-              </div>
-            </div>
-
-            <p className="login-security-note">
-              🔒 This is a prototype environment developed for Smart India Hackathon 2026.
-              All credentials and data are for demonstration purposes only.
-            </p>
-          </div>
-        </div>
+          <p className="tiny muted">
+            Prototype environment. The demo credentials are checked in the browser; a production deployment would use the
+            SDMA's single sign-on.
+          </p>
+        </section>
       </div>
     </div>
   );
-};
-
-export default LoginPage;
+}

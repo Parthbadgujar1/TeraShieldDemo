@@ -10,8 +10,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -53,6 +53,10 @@ data/temp/
 .coverage
 coverage.xml
 htmlcov/
+
+# Data pipeline (raw downloads are re-fetched by the build script)
+data-pipeline/.cache/
+data-pipeline/*.log
 
 # Node
 node_modules/

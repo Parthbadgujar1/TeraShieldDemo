@@ -1,106 +1,40 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import VillageDetailPage from "./pages/VillageDetailPage";
-import RelocationPage from "./pages/RelocationPage";
-import ExposurePage from "./pages/ExposurePage";
-import GISDashboardPage from "./pages/GISDashboardPage";
-import EmergencyDashboardPage from "./pages/EmergencyDashboardPage";
-import RescueMissionPage from "./pages/RescueMissionPage";
-import GovHeader from "./components/GovHeader";
-import GovFooter from "./components/GovFooter";
-import EmergencyHeader from "./components/EmergencyHeader";
-import api from "./services/api";
-import "./styles/index.css";
-import "./styles/App.css";
+import { lazy, Suspense, useState, type ReactNode } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Layout from "./components/Layout";
+import { Loading } from "./components/ui";
+import { currentSession, type Scope, type Session } from "./lib/auth";
 
-type AuthScope = "admin" | "emergency_team" | null;
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const GisDashboard = lazy(() => import("./pages/GisDashboard"));
+const HazardIntelligence = lazy(() => import("./pages/HazardIntelligence"));
+const ExposureVulnerability = lazy(() => import("./pages/ExposureVulnerability"));
+const RelocationIntelligence = lazy(() => import("./pages/RelocationIntelligence"));
+const EmergencyPortal = lazy(() => import("./pages/EmergencyPortal"));
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [scope, setScope] = useState<AuthScope>(null);
-  const [loading, setLoading] = useState(true);
+const homeFor = (s: Session) => (s.scope === "admin" ? "/gis" : "/emergency");
 
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    const savedScope = localStorage.getItem("auth_scope") as AuthScope;
-    if (token) {
-      setIsAuthenticated(true);
-      setScope(savedScope || "admin");
-      api.getHealth().catch(() => {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_scope");
-        setIsAuthenticated(false);
-        setScope(null);
-      });
-    }
-    setLoading(false);
-  }, []);
-
-  const handleLogin = (token: string, loginScope: string) => {
-    localStorage.setItem("auth_token", token);
-    localStorage.setItem("auth_scope", loginScope);
-    setIsAuthenticated(true);
-    setScope(loginScope as AuthScope);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_scope");
-    setIsAuthenticated(false);
-    setScope(null);
-  };
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading TeraShield...</p>
-      </div>
-    );
-  }
-
-  const isAdmin = isAuthenticated && scope === "admin";
-  const isEmergency = isAuthenticated && scope === "emergency_team";
-  const homeRoute = isEmergency ? "/emergency" : "/dashboard";
-
-  return (
-    <Router>
-      <div className="app">
-        {isEmergency ? (
-          <EmergencyHeader onLogout={handleLogout} />
-        ) : (
-          <GovHeader isAuthenticated={isAdmin} onLogout={handleLogout} />
-        )}
-        <main id="main-content" className="app-main">
-          <Routes>
-            <Route
-              path="/login"
-              element={
-                isAuthenticated ? <Navigate to={homeRoute} /> : <LoginPage onLogin={handleLogin} />
-              }
-            />
-
-            {/* Admin portal routes */}
-            <Route path="/dashboard" element={isAdmin ? <DashboardPage /> : <Navigate to={isAuthenticated ? homeRoute : "/login"} />} />
-            <Route path="/villages/:districtId/:villageId" element={isAdmin ? <VillageDetailPage /> : <Navigate to={isAuthenticated ? homeRoute : "/login"} />} />
-            <Route path="/relocation/:districtId" element={isAdmin ? <RelocationPage /> : <Navigate to={isAuthenticated ? homeRoute : "/login"} />} />
-            <Route path="/exposure" element={isAdmin ? <ExposurePage /> : <Navigate to={isAuthenticated ? homeRoute : "/login"} />} />
-            <Route path="/exposure/:districtId" element={isAdmin ? <ExposurePage /> : <Navigate to={isAuthenticated ? homeRoute : "/login"} />} />
-            <Route path="/gis-dashboard" element={isAdmin ? <GISDashboardPage /> : <Navigate to={isAuthenticated ? homeRoute : "/login"} />} />
-
-            {/* Emergency Response Team portal routes */}
-            <Route path="/emergency" element={isEmergency ? <EmergencyDashboardPage /> : <Navigate to={isAuthenticated ? homeRoute : "/login"} />} />
-            <Route path="/emergency/mission/:villageId" element={isEmergency ? <RescueMissionPage /> : <Navigate to={isAuthenticated ? homeRoute : "/login"} />} />
-
-            <Route path="/" element={isAuthenticated ? <Navigate to={homeRoute} /> : <Navigate to="/login" />} />
-          </Routes>
-        </main>
-        {isAdmin && <GovFooter />}
-      </div>
-    </Router>
-  );
+function Guard({ session, allow, children }: { session: Session | null; allow: Scope[]; children: ReactNode }) {
+  if (!session) return <Navigate to="/login" replace />;
+  if (!allow.includes(session.scope)) return <Navigate to={homeFor(session)} replace />;
+  return <Layout session={session}>{children}</Layout>;
 }
 
-export default App;
+export default function App() {
+  const [session, setSession] = useState<Session | null>(currentSession);
+
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<Loading text="Loading TeraShield…" />}>
+        <Routes>
+          <Route path="/login" element={session ? <Navigate to={homeFor(session)} replace /> : <LoginPage onLogin={setSession} />} />
+          <Route path="/gis" element={<Guard session={session} allow={["admin"]}><GisDashboard /></Guard>} />
+          <Route path="/hazards" element={<Guard session={session} allow={["admin"]}><HazardIntelligence /></Guard>} />
+          <Route path="/exposure" element={<Guard session={session} allow={["admin"]}><ExposureVulnerability /></Guard>} />
+          <Route path="/relocation" element={<Guard session={session} allow={["admin", "emergency_team"]}><RelocationIntelligence scope={session?.scope ?? "admin"} /></Guard>} />
+          <Route path="/emergency" element={<Guard session={session} allow={["emergency_team"]}><EmergencyPortal /></Guard>} />
+          <Route path="*" element={<Navigate to={session ? homeFor(session) : "/login"} replace />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
