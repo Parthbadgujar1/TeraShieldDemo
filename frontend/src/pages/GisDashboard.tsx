@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import DistrictDetail from "../components/DistrictDetail";
+import ErrorBoundary from "../components/ErrorBoundary";
 import IndiaMap, { BASEMAPS, type Basemap } from "../components/IndiaMap";
 import { AlertControls, SachetPanel } from "../components/AlertControls";
 import { DistrictPicker, ErrorBox, LegendZones, Loading } from "../components/ui";
@@ -142,7 +143,7 @@ export default function GisDashboard() {
           {mode === "live" && live ? <><span className="live-dot" /> 72 h alert overlay{liveState.source === "replay" ? " · replay" : ""}</> : "Annual baseline"} · {layer === "all" ? "multi-hazard" : layerLabel}
         </div>
         {!selected && <div className="map-hint">Click any district for hazards, exposure, relocation need and live conditions</div>}
-        {selected && <DistrictDetail d={selected} live={live?.get(selected.id) ?? null} data={data} onClose={() => setSelectedId(null)} />}
+        {selected && <ErrorBoundary label="The district panel" resetKey={selected.id}><DistrictDetail d={selected} live={live?.get(selected.id) ?? null} data={data} onClose={() => setSelectedId(null)} /></ErrorBoundary>}
       </section>
     </div>
   );

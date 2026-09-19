@@ -14,7 +14,8 @@ export interface Dataset {
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 async function getJson<T>(name: string): Promise<T> {
-  const r = await fetch(`${BASE}/data/${name}`);
+  const v = typeof __BUILD_ID__ === "string" ? __BUILD_ID__ : "dev";
+  const r = await fetch(`${BASE}/data/${name}?v=${v}`);
   if (!r.ok) throw new Error(`Could not load ${name} (${r.status})`);
   return r.json();
 }
