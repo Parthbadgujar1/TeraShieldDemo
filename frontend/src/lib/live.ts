@@ -9,12 +9,16 @@ export interface Point extends LatLon { id: number }
 
 interface Stored { t: number; d: Record<number, Forecast> }
 
-function readCache(): Stored | null {
+/** Where the last forecast set came from, so the UI can say "using cached data" instead of failing silently. */
+export type ForecastSource = "live" | "cached" | "stale";
+export const forecastMeta: { source: ForecastSource; t: number } = { source: "live", t: 0 };
+
+function readCache(allowStale = false): Stored | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw) as Stored;
-    return Date.now() - s.t < TTL_MS ? s : null;
+    return allowStale || Date.now() - s.t < TTL_MS ? s : null;
   } catch { return null; }
 }
 function writeCache(d: Record<number, Forecast>) {
@@ -62,7 +66,7 @@ export async function fetchForecasts(points: Point[], onProgress?: (done: number
   const cached = readCache();
   if (cached) {
     for (const p of points) if (cached.d[p.id]) out.set(p.id, cached.d[p.id]);
-    if (out.size === points.length) { onProgress?.(points.length, points.length); return out; }
+    if (out.size === points.length) { forecastMeta.source = "cached"; forecastMeta.t = cached.t; onProgress?.(points.length, points.length); return out; }
   }
   const todo = points.filter((p) => !out.has(p.id));
   const CH = 60;
@@ -85,7 +89,19 @@ export async function fetchForecasts(points: Point[], onProgress?: (done: number
     }
   };
   await Promise.all([worker(), worker(), worker()]);
-  if (out.size) writeCache(Object.fromEntries(out));
+  if (out.size >= points.length * 0.9) {
+    writeCache(Object.fromEntries(out));
+    forecastMeta.source = "live"; forecastMeta.t = Date.now();
+    return out;
+  }
+  // the public API rate-limited or timed out: fall back to the last known-good set (any age) and say so
+  const stale = readCache(true);
+  if (stale) {
+    for (const p of points) if (!out.has(p.id) && stale.d[p.id]) out.set(p.id, stale.d[p.id]);
+    forecastMeta.source = "stale"; forecastMeta.t = stale.t;
+  } else if (out.size) {
+    forecastMeta.source = "live"; forecastMeta.t = Date.now();
+  }
   return out;
 }
 

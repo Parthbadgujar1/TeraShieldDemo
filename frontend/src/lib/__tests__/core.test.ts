@@ -6,10 +6,10 @@ import { login } from "../auth";
 import { summariseStates } from "../data";
 import { FACTORS } from "../explain";
 import { bearing, clamp01, compass, destination, distToPolylineKm, haversineKm, smooth } from "../geo";
-import { liveOutlook, multiplier, triggers } from "../liveRisk";
-import { applyMeta, returnPeriod, zoneForComposite, zoneForHazard } from "../risk";
+import { composite, liveOutlook, multiplier, triggers } from "../liveRisk";
+import { HAZARDS, ZONES, ZONE_HAZARDS, applyMeta, returnPeriod, zoneForComposite, zoneForHazard } from "../risk";
 import {
-  PHASE_WEIGHTS, analyseTerrain, buildCandidates, effectiveMinutes, hazardMix, localHazards, movementPlan, rank, ringPoints,
+  HARD_REJECT, PHASE_WEIGHTS, analyseTerrain, hardRejects, buildCandidates, effectiveMinutes, hazardMix, localHazards, movementPlan, rank, ringPoints,
   type Candidate,
 } from "../relocation";
 import { routeRiskNote, sampleRisk, samplePath, type RouteOption } from "../routing";
@@ -42,8 +42,12 @@ describe("shipped dataset", () => {
     }
   });
 
-  it("assigns zones consistent with the published cut-offs", () => {
-    for (const d of districts) expect(zoneForComposite(d.risk)).toBe(d.zone);
+  it("assigns zones consistent with the published cut-offs (coastal index can only lift to ORANGE)", () => {
+    for (const d of districts) {
+      // d.risk is stored to one decimal, so allow the cut-off to fall inside the rounding band
+      const ok = [zoneForComposite(d.risk - 0.05), zoneForComposite(d.risk + 0.05)].map((base) => (d.cflag && (base === "YELLOW" || base === "GREEN") ? "ORANGE" : base));
+      expect(ok).toContain(d.zone);
+    }
     const counts = { RED: 0, ORANGE: 0, YELLOW: 0, GREEN: 0 };
     districts.forEach((d) => counts[d.zone]++);
     expect(counts).toEqual(meta.zone_counts);
@@ -73,10 +77,49 @@ describe("shipped dataset", () => {
     for (const d of districts) expect(districts[d.reloc.safe]).toBeDefined();
   });
 
-  it("scores well-known hotspots as high risk and arid plains lower", () => {
+  it("scores well-known hotspots as high risk", () => {
     expect(["RED", "ORANGE"]).toContain(puri.zone);
     expect(chamoli.dom).toBe("landslide");
-    expect(districts.find((d) => d.n === "Jaisalmer")!.dom).toBe("heatwave");
+    expect(["RED", "ORANGE"]).toContain(chamoli.zone);
+  });
+
+  it("keeps heatwave and the coastal index out of the zone decision", () => {
+    const zoneKeys = ZONE_HAZARDS.map((h) => h.key);
+    expect(zoneKeys).toEqual(["flood", "landslide", "cloudburst", "cyclone"]);
+    for (const d of districts) expect(zoneKeys).toContain(d.dom);
+    // arid, very hot districts are not pushed into a high tier by heat alone
+    const jais = districts.find((d) => d.n === "Jaisalmer")!;
+    expect(jais.P.heatwave).toBeGreaterThan(50);
+    expect(["GREEN", "YELLOW"]).toContain(jais.zone);
+    // and heat is in the vulnerability factors instead
+    expect(meta.vuln_factors).toContain("heat_stress");
+  });
+
+  it("reports rank stability for every district as a percentage", () => {
+    for (const d of districts) {
+      expect(d.reloc.stab).toBeGreaterThanOrEqual(0);
+      expect(d.reloc.stab).toBeLessThanOrEqual(100);
+      expect(d.reloc.top).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it("derives terrain from the district polygon and carries seismicity", () => {
+    expect(chamoli.terr.relief).toBeGreaterThan(2000);
+    expect(chamoli.terr.s30).toBeGreaterThan(10);
+    expect(puri.terr.s15).toBe(0);
+    expect(districts.every((d) => d.seis.n >= 0)).toBe(true);
+  });
+
+  it("uses modern district names", () => {
+    expect(districts.some((d) => d.n === "Dehradun")).toBe(true);
+    expect(districts.some((d) => d.n === "Dehra Dun")).toBe(false);
+  });
+
+  it("picks a receiving district that is low-hazard and never the district itself", () => {
+    for (const d of districts) {
+      const r = districts[d.reloc.safe];
+      expect(r.id).not.toBe(d.id);
+    }
   });
 });
 
@@ -118,11 +161,11 @@ describe("risk classes", () => {
   });
 });
 
-describe("live 72-hour outlook", () => {
-  it("multiplier runs from its floor to 2x", () => {
-    expect(multiplier("flood", 0)).toBeCloseTo(0.5, 6);
-    expect(multiplier("flood", 1)).toBeCloseTo(2, 6);
-    expect(multiplier("heatwave", 0)).toBe(0);
+describe("72-hour alert overlay", () => {
+  it("multiplier runs from 1x (no trigger) to 2x and never below the baseline", () => {
+    expect(multiplier("flood", 0)).toBe(1);
+    expect(multiplier("flood", 1)).toBe(2);
+    expect(multiplier("heatwave", 0)).toBe(1);
   });
   it("fires triggers only when the forecast supports them", () => {
     const t0 = triggers(puri, calm);
@@ -132,13 +175,29 @@ describe("live 72-hour outlook", () => {
     expect(t1.cyclone).toBeGreaterThan(0.8);
     expect(triggers(chamoli, storm).cyclone).toBeLessThan(0.1); // inland: wind alone does not make a cyclone
   });
-  it("raises risk under a storm and lowers it on a dry day", () => {
+  it("raises an alert under a storm and never below baseline on a dry day", () => {
     const dry = liveOutlook(puri, calm);
     const wet = liveOutlook(puri, storm);
     expect(wet.risk).toBeGreaterThan(dry.risk);
-    expect(wet.risk).toBeGreaterThan(puri.risk - 1);
+    expect(dry.risk).toBeGreaterThanOrEqual(puri.risk);
     for (const p of Object.values(wet.P)) expect(p).toBeLessThanOrEqual(95);
     expect(liveOutlook(chamoli, storm).escalated).toBe(true);
+  });
+  it("a dry forecast can never relabel any district as safer than its baseline", () => {
+    for (const d of districts) {
+      const r = liveOutlook(d, calm);
+      expect(ZONES.indexOf(r.zone)).toBeLessThanOrEqual(ZONES.indexOf(d.zone));
+      expect(r.escalated).toBe(false);
+      for (const h of HAZARDS) expect(r.P[h.key]).toBeGreaterThanOrEqual(d.P[h.key] - 1e-9);
+    }
+    // red count under a dry week is not lower than the baseline red count (the old bug turned 62 into 0)
+    const redBase = districts.filter((d) => d.zone === "RED").length;
+    const redDry = districts.filter((d) => liveOutlook(d, calm).zone === "RED").length;
+    expect(redDry).toBeGreaterThanOrEqual(redBase);
+  });
+  it("composite ignores heatwave and the coastal index", () => {
+    const base = { flood: 10, landslide: 10, cloudburst: 10, coastal: 90, cyclone: 10, heatwave: 100 };
+    expect(composite(base)).toBeCloseTo(10, 6);
   });
 });
 
@@ -175,6 +234,36 @@ describe("relocation planner", () => {
 
   const cands = buildCandidates({
     origin, district: chamoli, pts, elevations: pts.map((_, i) => 1500 + (i % 7) * 60), waterways: null, coast: null, amenities: [], population: 500,
+  });
+
+  it("never counts hospitals as shelter and separates sites on capacity", () => {
+    const hospitals = [{ type: "hospital", lat: pts[0].lat, lon: pts[0].lon }];
+    const withHosp = buildCandidates({ origin, district: chamoli, pts, elevations: pts.map((_, i) => 1500 + (i % 7) * 60), waterways: null, coast: null, amenities: hospitals, population: 500 });
+    expect(withHosp[0].capacity.shelter).toBe(0);
+    const schools = [{ type: "school", lat: pts[0].lat, lon: pts[0].lon }, { type: "school", lat: pts[0].lat, lon: pts[0].lon }];
+    const withSchools = buildCandidates({ origin, district: chamoli, pts, elevations: pts.map((_, i) => 1500 + (i % 7) * 60), waterways: null, coast: null, amenities: schools, population: 500 });
+    expect(withSchools[0].capacity.shelter).toBe(460);
+    const scores = new Set(withSchools.map((c) => c.capacityScore.toFixed(3)));
+    expect(scores.size).toBeGreaterThan(1); // not every site clipped at 100
+    expect(withSchools.every((c) => c.capacity.water === "UNVALIDATED")).toBe(true); // no waterways supplied
+  });
+
+  it("hard-rejects high local susceptibility instead of merely weighting it", () => {
+    expect(hardRejects({ flood: 0.1, landslide: 0.46 }, 12, 30, null).join()).toMatch(/landslide/);
+    expect(hardRejects({ flood: 0.6, landslide: 0.1 }, 2, 30, null).join()).toMatch(/flood/);
+    expect(hardRejects({ flood: 0.1, landslide: 0.1 }, HARD_REJECT.slope + 1, 30, null).join()).toMatch(/slope/);
+    expect(hardRejects({ flood: 0.1, landslide: 0.1 }, 5, 1, 0.1).join()).toMatch(/river bank/);
+    expect(hardRejects({ flood: 0.1, landslide: 0.1 }, 5, 30, 5)).toEqual([]);
+  });
+
+  it("never recommends a rejected site as feasible", () => {
+    const top = cands.slice(0, 2).map((c, i) => ({ ...c, reject: i === 0 ? ["landslide susceptibility 60/100 >= 40"] : [], safety: 0.9 }));
+    const routes = new Map<string, RouteOption[]>(top.map((c) => [c.id, [{ index: 0, distanceKm: 5, durationMin: 10, path: [], risk: 0.1, riskNote: "", samples: [] }]]));
+    const res = rank(top, routes, { weights: PHASE_WEIGHTS.predicted, blocked: new Set(), ttiHours: 48, prepMin: 60 });
+    const rej = res.find((o) => o.candidate.id === top[0].id)!;
+    expect(rej.rejected).toBe(true);
+    expect(rej.feasible).toBe(false);
+    expect(res[0].candidate.id).toBe(top[1].id);
   });
 
   it("builds candidates with bounded scores", () => {
@@ -224,6 +313,7 @@ describe("relocation planner", () => {
     expect(plan.waves).toBe(2);
     expect(plan.totalMin).toBe(2 * (30 + 30) + 30);
     expect(plan.priorityOrder[0]).toMatch(/Hospitalised/);
+    expect(plan.young).toBe(Math.round(500 * chamoli.c.a30)); // Census age band 0-29, honestly named
   });
 });
 

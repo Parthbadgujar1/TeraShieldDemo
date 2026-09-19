@@ -3,10 +3,10 @@ import { Emblem } from "../components/Layout";
 import { login, type Session } from "../lib/auth";
 
 const FEATURES = [
-  ["Multi-hazard red zones", "Flood, landslide, cloudburst, coastal erosion, cyclone and heatwave probability for 594 districts."],
+  ["Multi-hazard screening → habitation red zones", "Flood, landslide, cloudburst, cyclone and coastal-erosion screening for 594 districts, with habitation-level red-zone polygons for a pilot district."],
   ["Exposure & vulnerability", "Who and what sits in each hazard footprint, and how badly they would be hurt."],
   ["Relocation intelligence", "Safe destinations, carrying capacity, hazard-aware road routes and a phased evacuation plan."],
-  ["Live 72-hour outlook", "Red zones re-scored from the current weather forecast — not a frozen map."],
+  ["72-hour alert overlay", "Forecast rain and wind raise alerts on top of the evidence-based baseline — a dry week never relabels land as safe."],
 ];
 
 export default function LoginPage({ onLogin }: { onLogin: (s: Session) => void }) {

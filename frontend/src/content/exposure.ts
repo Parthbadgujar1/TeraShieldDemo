@@ -25,8 +25,8 @@ export const EXPOSURE_CATEGORIES: Category[] = [
     id: "population", title: "Population exposure", icon: "👥", blurb: "Who lives in the hazard footprint.",
     vars: [
       v("Total population", "census", "pop"), v("Population density", "census", "dens"), v("Age distribution", "census", "age"),
-      v("Children population (age 0–29 share)", "census", "a30"), v("Elderly population (age 50+ share)", "census", "a50"),
-      v("Working-age population", "census", "work"), v("Population with disabilities (national prevalence)", "derived", "dis"),
+      v("Young population (age 0–29 share; 0–6 needs Census PCA)", "census", "a30"), v("Elderly population (age 50+ share)", "census", "a50"),
+      v("Working-age population", "census", "work"), v("Population with disabilities (national 2.21% rate — district table C-20 not yet integrated)", "derived", "dis"),
       v("Household density", "derived", "hhdens"), v("Household size", "census", "hhsize"), v("Population growth", "gap"),
       v("Seasonal population", "gap"), v("Tourist population (hotel-capacity proxy)", "osm", "osm:hotel"), v("Migrant population", "gap"),
       v("Population in hazard zones", "derived", "expo_pop"),
@@ -91,8 +91,8 @@ export const EXPOSURE_CATEGORIES: Category[] = [
     id: "social", title: "Social vulnerability", icon: "🫂", blurb: "Who is least able to cope and recover.",
     vars: [
       v("Poverty (asset-deprivation index)", "derived", "assetdep"), v("Low-income households (no LPG, no lighting)", "derived", "c:lpg-"),
-      v("Unemployment (non-workers)", "derived", "nonwork"), v("Elderly population", "census", "a50"), v("Children", "census", "a30"),
-      v("Disability prevalence", "derived", "dis"), v("Female-headed households", "gap"), v("Single-person households", "gap"),
+      v("Unemployment (non-workers)", "derived", "nonwork"), v("Elderly population", "census", "a50"), v("Young population (0–29)", "census", "a30"),
+      v("Disability prevalence (national rate applied)", "derived", "dis"), v("Female-headed households", "gap"), v("Single-person households", "gap"),
       v("Housing insecurity (dilapidated homes)", "census", "c:dil"), v("Informal settlements", "derived", "c:dil"),
       v("Vehicle ownership", "census", "veh"), v("Access to healthcare (hospitals per lakh people)", "osm", "hosp100k"),
       v("Access to transportation", "census", "veh"), v("Digital connectivity (phone / internet homes)", "census", "c:phone"),
@@ -163,29 +163,30 @@ export interface VulnFactor { id: string; label: string; weight: number; group: 
 
 /** Order must match meta.vuln_factors and the `vf` array in districts.json. */
 export const VULN_FACTORS: VulnFactor[] = [
-  { id: "illiteracy", label: "Illiteracy", weight: 0.12, group: "Social", desc: "Share of people who cannot read and write — weaker uptake of written warnings and instructions." },
-  { id: "scst", label: "Scheduled Caste / Tribe share", weight: 0.08, group: "Social", desc: "Historically marginalised groups more often live on hazardous land with less recovery support." },
-  { id: "elderly", label: "Aged 50+ share", weight: 0.08, group: "Demographic", desc: "Older people are slower to evacuate and more exposed to health shocks (Census age bands: 0–29, 30–49, 50+)." },
-  { id: "agri", label: "Agriculture-dependent workers", weight: 0.10, group: "Economic", desc: "Cultivators and agricultural labourers lose income directly when crops and land are damaged." },
-  { id: "no_elec", label: "Homes without electric lighting", weight: 0.08, group: "Asset", desc: "A basic asset-deprivation marker — also less access to phone charging and alerts." },
-  { id: "no_lpg", label: "Homes without clean cooking fuel", weight: 0.10, group: "Asset", desc: "Proxy for poverty; fuel-wood collection adds to slope and river exposure." },
-  { id: "dilapidated", label: "Dilapidated houses", weight: 0.12, group: "Housing", desc: "Weak structures fail first in floods, cyclones and slides." },
-  { id: "no_vehicle", label: "Households without a vehicle", weight: 0.10, group: "Access", desc: "No car, two-wheeler (and half-weighted bicycle) means dependence on public evacuation transport." },
-  { id: "no_phone", label: "Households without a phone", weight: 0.06, group: "Communication", desc: "Cannot receive SMS / Sachet alerts or call for help." },
-  { id: "water_far", label: "Drinking-water source away from home", weight: 0.08, group: "Services", desc: "Longer trips to water sources raise exposure and slow post-disaster recovery." },
-  { id: "no_latrine", label: "No latrine within premises", weight: 0.08, group: "Services", desc: "Sanitation gaps multiply disease risk after flooding." },
+  { id: "illiteracy", label: "Illiteracy", weight: 0.11, group: "Social", desc: "Share of people who cannot read and write — weaker uptake of written warnings and instructions." },
+  { id: "scst", label: "Scheduled Caste / Tribe share", weight: 0.07, group: "Social", desc: "Historically marginalised groups more often live on hazardous land with less recovery support." },
+  { id: "elderly", label: "Aged 50+ share", weight: 0.07, group: "Demographic", desc: "Older people are slower to evacuate and more exposed to health shocks (Census age bands: 0–29, 30–49, 50+)." },
+  { id: "agri", label: "Agriculture-dependent workers", weight: 0.09, group: "Economic", desc: "Cultivators and agricultural labourers lose income directly when crops and land are damaged." },
+  { id: "no_elec", label: "Homes without electric lighting", weight: 0.07, group: "Asset", desc: "A basic asset-deprivation marker — also less access to phone charging and alerts." },
+  { id: "no_lpg", label: "Homes without clean cooking fuel", weight: 0.09, group: "Asset", desc: "Proxy for poverty; fuel-wood collection adds to slope and river exposure." },
+  { id: "dilapidated", label: "Dilapidated houses", weight: 0.11, group: "Housing", desc: "Weak structures fail first in floods, cyclones and slides." },
+  { id: "no_vehicle", label: "Households without a vehicle", weight: 0.09, group: "Access", desc: "No car, two-wheeler (and half-weighted bicycle) means dependence on public evacuation transport." },
+  { id: "no_phone", label: "Households without a phone", weight: 0.05, group: "Communication", desc: "Cannot receive SMS / Sachet alerts or call for help." },
+  { id: "water_far", label: "Drinking-water source away from home", weight: 0.07, group: "Services", desc: "Longer trips to water sources raise exposure and slow post-disaster recovery." },
+  { id: "no_latrine", label: "No latrine within premises", weight: 0.07, group: "Services", desc: "Sanitation gaps multiply disease risk after flooding." },
+  { id: "heat_stress", label: "Heat stress (IMD heatwave frequency)", weight: 0.11, group: "Climate", desc: "Share of years with an IMD-criteria heatwave (70%) and days above the heat threshold (30%). Heat does not make land uninhabitable, so it raises vulnerability instead of moving a district into a red zone." },
 ];
 
 export interface CoreGroup { title: string; items: { name: string; key: string }[] }
 
 /** The compact feature set a first ML/decision model would actually use — the rest of the framework is largely redundant with it. */
 export const CORE_FEATURES: CoreGroup[] = [
-  { title: "Population", items: [{ name: "Population density", key: "dens" }, { name: "Total population", key: "pop" }, { name: "Elderly (50+) %", key: "a50" }, { name: "Age 0–29 %", key: "a30" }, { name: "Disability % (national)", key: "dis" }, { name: "Asset deprivation", key: "assetdep" }, { name: "Tourist capacity proxy", key: "hotelcap" }] },
+  { title: "Population", items: [{ name: "Population density", key: "dens" }, { name: "Total population", key: "pop" }, { name: "Elderly (50+) %", key: "a50" }, { name: "Age 0–29 %", key: "a30" }, { name: "Disability % (national rate)", key: "dis" }, { name: "Asset deprivation", key: "assetdep" }, { name: "Tourist capacity proxy", key: "hotelcap" }] },
   { title: "Buildings", items: [{ name: "Household density", key: "hhdens" }, { name: "Dilapidated houses %", key: "c:dil" }, { name: "Household size", key: "hhsize" }] },
   { title: "Infrastructure", items: [{ name: "Hospitals", key: "osm:hospital" }, { name: "Schools", key: "osm:school" }, { name: "Emergency facilities", key: "osm:fire+police" }, { name: "Power & water assets", key: "osm:substation+water" }, { name: "Bridges", key: "osm:bridge" }, { name: "Railway stations", key: "osm:rail" }] },
   { title: "Economy", items: [{ name: "Employment density", key: "workdens" }, { name: "Agricultural workers %", key: "c:agri" }, { name: "Tourism & hospitality assets", key: "osm:hotel+attraction" }] },
   { title: "Accessibility", items: [{ name: "Distance to nearest safe district", key: "safekm" }, { name: "Households without a vehicle", key: "noveh" }, { name: "Evacuation accessibility", key: "evac" }] },
-  { title: "Hazard interaction", items: [{ name: "Flood probability", key: "p:flood" }, { name: "Coastal-erosion likelihood", key: "p:coastal" }, { name: "Cloudburst probability", key: "p:cloudburst" }, { name: "Landslide probability", key: "p:landslide" }] },
+  { title: "Hazard interaction", items: [{ name: "Flood probability", key: "p:flood" }, { name: "Coastal-erosion susceptibility index", key: "p:coastal" }, { name: "Cloudburst probability", key: "p:cloudburst" }, { name: "Landslide probability", key: "p:landslide" }] },
 ];
 
 export const PIPELINE = [
@@ -193,6 +194,6 @@ export const PIPELINE = [
   { title: "Probability & intensity", note: "Annual occurrence + 72-h live outlook" },
   { title: "Exposure model", note: "Who and what sits in the footprint" },
   { title: "Vulnerability model", note: "How badly they are hurt" },
-  { title: "Risk", note: "Hazard × exposure × vulnerability" },
+  { title: "Risk", note: "Hazard × (½ exposure + ½ vulnerability)" },
   { title: "Relocation / decision support", note: "Module 3 — where people should move" },
 ];

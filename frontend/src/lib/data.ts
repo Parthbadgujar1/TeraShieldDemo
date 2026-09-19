@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { applyMeta } from "./risk";
-import type { District, HistoryEvent, Meta } from "./types";
+import type { AlertFeed, District, HistoryEvent, Meta, Pilot, ReplayPack, Validation } from "./types";
 
 export interface Dataset {
   districts: District[];
@@ -66,6 +66,13 @@ export const loadDistrictGeo = () => cached<GeoCollection>("geo_districts.json")
 export const loadStateGeo = () => cached<GeoCollection>("geo_states.json");
 export const loadHistory = () => cached<Record<string, HistoryEvent[]>>("history.json");
 export const loadCoast = () => cached<number[][][]>("coast.json");
+export const loadAlerts = () => cached<AlertFeed>("alerts.json");
+export const loadReplays = () => cached<ReplayPack>("replays.json");
+export const loadValidation = () => cached<Validation>("validation.json");
+export const loadPilot = (slug = "wayanad") => cached<Pilot>(`pilot_${slug}.json`);
+
+/** Pilot districts that ship habitation-level data. Add a slug here after running data-pipeline/build_pilot.py. */
+export const PILOT_SLUGS = ["wayanad"] as const;
 
 /** Remember the last district across the four modules. */
 const KEY = "ts_district";
@@ -129,4 +136,15 @@ export function useDistrictParam(data: Dataset | null, fallbackToDefault = false
   }, [data, valid, fallbackToDefault, set]);
 
   return [valid, set] as const;
+}
+
+/** Districts named in an active official SACHET alert (for a map outline). */
+export function useAlertDistricts(): Set<number> {
+  const [ids, setIds] = useState<Set<number>>(new Set());
+  useEffect(() => {
+    let alive = true;
+    loadAlerts().then((f) => alive && setIds(new Set(f.alerts.flatMap((a) => a.districts)))).catch(() => undefined);
+    return () => { alive = false; };
+  }, []);
+  return ids;
 }

@@ -1,0 +1,195 @@
+{
+ "generated": "2026-09-19",
+ "landslide": {
+  "split": {
+   "freeze_year": 2014,
+   "test_years": [
+    2015,
+    2023
+   ]
+  },
+  "districts": 594,
+  "districts_with_test_events": 272,
+  "districts_with_calibration_events": 288,
+  "model": {
+   "auc": 0.7767172086225794,
+   "ci": [
+    0.7420355306449875,
+    0.8131984151746063
+   ],
+   "top20_capture": 0.4227941176470588,
+   "lift_top20": 2.113970588235294
+  },
+  "baselines": {
+   "history_only": {
+    "auc": 0.8398337595907929,
+    "top20_capture": 0.4338235294117647
+   },
+   "terrain_only": {
+    "auc": 0.7479962093533066,
+    "top20_capture": 0.4117647058823529
+   },
+   "no_history": {
+    "auc": 0.7341409389842893,
+    "top20_capture": 0.3860294117647059
+   },
+   "random": {
+    "auc": 0.5,
+    "top20_capture": 0.2
+   }
+  },
+  "deciles": [
+   {
+    "decile": 1,
+    "districts": 59,
+    "hit_rate": 0.9661016949152542,
+    "mean_score": 0.5920841260765977
+   },
+   {
+    "decile": 2,
+    "districts": 59,
+    "hit_rate": 0.9661016949152542,
+    "mean_score": 0.3634866591275157
+   },
+   {
+    "decile": 3,
+    "districts": 60,
+    "hit_rate": 0.5833333333333334,
+    "mean_score": 0.22282971694387152
+   },
+   {
+    "decile": 4,
+    "districts": 59,
+    "hit_rate": 0.3559322033898305,
+    "mean_score": 0.15574298147944807
+   },
+   {
+    "decile": 5,
+    "districts": 60,
+    "hit_rate": 0.36666666666666664,
+    "mean_score": 0.10481268558760802
+   },
+   {
+    "decile": 6,
+    "districts": 59,
+    "hit_rate": 0.3220338983050847,
+    "mean_score": 0.0699167292000578
+   },
+   {
+    "decile": 7,
+    "districts": 59,
+    "hit_rate": 0.3050847457627119,
+    "mean_score": 0.045226966799500785
+   },
+   {
+    "decile": 8,
+    "districts": 60,
+    "hit_rate": 0.25,
+    "mean_score": 0.02742461539031858
+   },
+   {
+    "decile": 9,
+    "districts": 59,
+    "hit_rate": 0.2711864406779661,
+    "mean_score": 0.016160592188378987
+   },
+   {
+    "decile": 10,
+    "districts": 60,
+    "hit_rate": 0.2,
+    "mean_score": 0.00853696782129053
+   }
+  ],
+  "sensitivity": {
+   "runs": 500,
+   "concentration": "Dirichlet(20 x default weights)",
+   "auc": {
+    "min": 0.7328621666057727,
+    "p5": 0.748192592254293,
+    "median": 0.7744108512970406,
+    "p95": 0.8033784709535988,
+    "max": 0.8202868103763244
+   },
+   "top20": {
+    "min": 0.3713235294117647,
+    "median": 0.41544117647058826,
+    "max": 0.4264705882352941
+   },
+   "default_auc": 0.7767172086225794,
+   "histogram": [
+    6,
+    16,
+    34,
+    51,
+    80,
+    86,
+    85,
+    59,
+    43,
+    21,
+    12,
+    7
+   ],
+   "histogram_range": [
+    0.7328621666057727,
+    0.8202868103763244
+   ]
+  },
+  "logistic": {
+   "features": [
+    "terrain",
+    "rain",
+    "stream"
+   ],
+   "standardised_coef": [
+    1.9028735187825137,
+    0.4666100339279527,
+    0.05704980303565301
+   ],
+   "relative_importance": [
+    0.7841942556760819,
+    0.19229491851946032,
+    0.023510825804457618
+   ],
+   "research_relative": [
+    0.5625000000000001,
+    0.3125,
+    0.12500000000000003
+   ],
+   "auc_holdout": 0.7594994519546949,
+   "auc_research_same_features": 0.7341409389842893
+  }
+ },
+ "cyclone": {
+  "split": {
+   "train": [
+    1990,
+    2013
+   ],
+   "test": [
+    2014,
+    2023
+   ]
+  },
+  "districts": 594,
+  "districts_with_test_storms": 382,
+  "auc": 0.8191309394448286,
+  "ci": [
+   0.7836727061453134,
+   0.8513280453612199
+  ],
+  "top20_capture": 0.29842931937172773,
+  "radius_km": 150
+ },
+ "not_validated": [
+  "flood",
+  "cloudburst",
+  "coastal erosion",
+  "heatwave"
+ ],
+ "caveats": [
+  "The NASA Global Landslide Catalog is compiled from media reports: it over-represents roads, towns and English-language coverage.",
+  "Validation is at district scale (an event within ~33 km of the polygon), so it tests ranking, not habitation-level accuracy.",
+  "No open, machine-readable inventory of flood, cloudburst or shoreline-change events is ingested, so those layers are unvalidated."
+ ]
+}

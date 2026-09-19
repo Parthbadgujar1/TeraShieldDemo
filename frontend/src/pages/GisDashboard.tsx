@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import DistrictDetail from "../components/DistrictDetail";
 import IndiaMap, { BASEMAPS, type Basemap } from "../components/IndiaMap";
+import { AlertControls, SachetPanel } from "../components/AlertControls";
 import { DistrictPicker, ErrorBox, LegendZones, Loading } from "../components/ui";
-import { useDataset, useDistrictParam } from "../lib/data";
-import { useLiveOutlook, useViewMode } from "../lib/useLive";
+import { useAlertDistricts, useDataset, useDistrictParam } from "../lib/data";
+import { useLiveOutlook, useReplayChoice, useViewMode } from "../lib/useLive";
 import { HAZARDS, ZONE_COLOR, ZONE_LABEL, ZONES, compact, zoneRows, zoneSummary, type Layer } from "../lib/risk";
 import type { Zone } from "../lib/types";
 
@@ -17,7 +18,11 @@ export default function GisDashboard() {
   const [base, setBase] = useState<Basemap>("light");
   const [panelOpen, setPanelOpen] = useState(() => window.matchMedia("(min-width: 901px)").matches);
 
-  const { live, progress, stamp, failed } = useLiveOutlook(data, mode, setMode);
+  const [replayId, setReplay] = useReplayChoice();
+  const liveState = useLiveOutlook(data, mode, setMode, replayId);
+  const { live } = liveState;
+  const [showAlerts, setShowAlerts] = useState(true);
+  const alertIds = useAlertDistricts();
 
   const rows = useMemo(() => (data ? zoneRows(data.districts, layer, live, stateF) : []), [data, layer, live, stateF]);
   const { counts, redPop, escalated } = useMemo(() => zoneSummary(rows), [rows]);
@@ -50,24 +55,7 @@ export default function GisDashboard() {
 
           <div>
             <div className="label">Time view</div>
-            <div className="seg" role="group" aria-label="Time view">
-              <button className={mode === "annual" ? "on" : ""} onClick={() => setMode("annual")}>Annual probability</button>
-              <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>Live 72 h outlook</button>
-            </div>
-            <p className="tiny muted" style={{ marginTop: 6 }}>
-              {mode === "annual"
-                ? "Climatology 2014–2023 × terrain, rivers, coast, cyclone and landslide history."
-                : "Annual probability re-scored from today's Open-Meteo rain, wind and temperature forecast."}
-            </p>
-            {progress && (
-              <div className="row small" style={{ marginTop: 6 }}><span className="spinner" /> Fetching forecasts… {progress.done}/{progress.total}</div>
-            )}
-            {failed && <div className="notice warn tiny" style={{ marginTop: 6 }}>Live forecast is unreachable right now — showing annual probability.</div>}
-            {live && stamp && (
-              <div className="notice info tiny" style={{ marginTop: 6 }}>
-                Updated {stamp.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} · <b>{escalated}</b> district{escalated === 1 ? "" : "s"} escalated vs. baseline
-              </div>
-            )}
+            <AlertControls mode={mode} setMode={setMode} replayId={replayId} setReplay={setReplay} state={liveState} escalated={escalated} />
           </div>
 
           <div>
@@ -86,19 +74,30 @@ export default function GisDashboard() {
           </div>
 
           <div>
-            <div className="label">Risk level ({layerLabel})</div>
+            <div className="label">Hazard tier ({layerLabel})</div>
             <div className="chips">
               {ZONES.map((z) => (
                 <button key={z} className={`chip zone-chip${zoneOn.has(z) ? " on" : ""}`} style={zoneOn.has(z) ? { background: ZONE_COLOR[z], borderColor: ZONE_COLOR[z], color: z === "YELLOW" ? "#3b2c00" : "#fff" } : undefined} onClick={() => toggleZone(z)}>
-                  {ZONE_LABEL[z].replace(" zone", "")} · {counts[z]}
+                  {ZONE_LABEL[z]} · {counts[z]}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="grid g2" style={{ gap: 8 }}>
-            <div className="stat red"><b>{counts.RED}</b><span>red-zone districts</span></div>
-            <div className="stat"><b>{compact(redPop)}</b><span>people in red zones</span></div>
+            <div className="stat red"><b>{counts.RED}</b><span>very-high-hazard districts</span></div>
+            <div className="stat"><b>{compact(redPop)}</b><span>people living in them</span></div>
+          </div>
+          <p className="tiny muted" style={{ marginTop: -8 }}>
+            A screening figure, <b>not</b> a relocation need. A district is a hazard tier; red zones (land unsuitable for permanent habitation) are decided per habitation — pilot: Wayanad, in Relocation Intelligence.
+          </p>
+
+          <div>
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <div className="label" style={{ margin: 0 }}>Official alerts</div>
+              <label className="tiny row" style={{ gap: 4 }}><input type="checkbox" checked={showAlerts} onChange={(e) => setShowAlerts(e.target.checked)} /> outline on map</label>
+            </div>
+            <SachetPanel districts={data.byId} onPick={pick} stateFilter={stateF} />
           </div>
 
           <div>
@@ -121,15 +120,17 @@ export default function GisDashboard() {
             <LegendZones counts={counts} />
             <p className="tiny muted" style={{ marginTop: 6 }}>
               {layer === "all"
-                ? "Zone = multi-hazard probability (worst hazard weighted with the next two; heatwave at 40%)."
-                : `Zone = ${layerLabel} annual probability: ≥ 45% red, ≥ 30% orange, ≥ 15% yellow.`}
+                ? "Tier = flood, landslide, cloudburst and cyclone probability (worst hazard blended with the next two). Heat feeds vulnerability; the coastal index can lift a district to High only."
+                : layer === "coastal"
+                  ? "Coastal erosion is a susceptibility index, not a probability (erosion is a retreat rate in m/yr)."
+                  : `Tier = ${layerLabel} annual probability: ≥ 45% very high, ≥ 30% high, ≥ 15% moderate.`}
             </p>
           </div>
         </div>
       </aside>
 
       <section className="gis-map" aria-label="Hazard map">
-        <IndiaMap districts={data.districts} layer={layer} live={live} zoneOn={zoneOn} stateFilter={stateF} selectedId={selectedId} onSelect={pick} base={base} />
+        <IndiaMap districts={data.districts} layer={layer} live={live} zoneOn={zoneOn} stateFilter={stateF} selectedId={selectedId} onSelect={pick} base={base} alertIds={showAlerts ? alertIds : undefined} />
         <div className="map-tools">
           <div className="seg" role="group" aria-label="Base map">
             {(Object.keys(BASEMAPS) as Basemap[]).map((b) => (
@@ -138,7 +139,7 @@ export default function GisDashboard() {
           </div>
         </div>
         <div className="map-badge">
-          {mode === "live" && live ? <><span className="live-dot" /> Live 72 h outlook</> : "Annual probability"} · {layer === "all" ? "multi-hazard" : layerLabel}
+          {mode === "live" && live ? <><span className="live-dot" /> 72 h alert overlay{liveState.source === "replay" ? " · replay" : ""}</> : "Annual baseline"} · {layer === "all" ? "multi-hazard" : layerLabel}
         </div>
         {!selected && <div className="map-hint">Click any district for hazards, exposure, relocation need and live conditions</div>}
         {selected && <DistrictDetail d={selected} live={live?.get(selected.id) ?? null} data={data} onClose={() => setSelectedId(null)} />}

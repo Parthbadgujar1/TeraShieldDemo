@@ -1,2 +1,6 @@
 numpy>=1.26
 shapely>=2.0
+pillow>=10.0        # decode terrain tiles, rasterise polygons
+scipy>=1.11         # distance transforms, connected components, KD-trees (pilot builder)
+tifffile>=2024.1    # read the WorldPop GeoTIFF
+imagecodecs>=2024.1 # LZW decoding for tifffile

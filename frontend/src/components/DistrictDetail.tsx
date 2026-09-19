@@ -5,9 +5,11 @@ import { loadHistory, type Dataset } from "../lib/data";
 import { contributions, whyText } from "../lib/explain";
 import { googleDirections, googleEmbed, googlePlace, googleStreetView } from "../lib/geo";
 import { fetchDischarge, fetchOutlook, type DailyOutlook, type Discharge } from "../lib/live";
+import { evidenceSummary } from "../lib/evidence";
+import { loadAlerts } from "../lib/data";
 import type { LiveResult } from "../lib/liveRisk";
-import { HAZARDS, HAZARD_BY_KEY, HAZARD_CUTS, TIER_ACTION, TIER_COLOR, TIER_LABEL, ZONE_COLOR, ZONE_MEANING, compact, lakh, returnPeriod } from "../lib/risk";
-import type { District, HazardKey, HistoryEvent } from "../lib/types";
+import { HAZARDS, HAZARD_BY_KEY, HAZARD_CUTS, RISK_FORMULA, ZONE_LABEL, TIER_ACTION, TIER_COLOR, TIER_LABEL, ZONE_COLOR, ZONE_MEANING, compact, lakh, returnPeriod } from "../lib/risk";
+import type { AlertItem, District, HazardKey, HistoryEvent } from "../lib/types";
 import { Bar, HazardClass, ZoneBadge } from "./ui";
 
 function Section({ title, children, aside }: { title: string; children: ReactNode; aside?: ReactNode }) {
@@ -30,6 +32,7 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
   const [dis, setDis] = useState<Discharge | null>(null);
   const [events, setEvents] = useState<HistoryEvent[]>([]);
   const [sat, setSat] = useState(false);
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
 
   useEffect(() => {
     setOpen(d.dom);
@@ -38,6 +41,7 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
     fetchOutlook(d).then((o) => alive && setOutlook(o)).catch(() => alive && setOutErr(true));
     fetchDischarge(d).then((x) => alive && setDis(x)).catch(() => undefined);
     loadHistory().then((h) => alive && setEvents(h[String(d.id)] ?? [])).catch(() => undefined);
+    loadAlerts().then((f) => alive && setAlerts(f.alerts.filter((a) => a.districts.includes(d.id)))).catch(() => undefined);
     return () => { alive = false; };
   }, [d.id]);
 
@@ -46,6 +50,8 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
   const vTop = [...d.vf.map((v, i) => ({ v, f: VULN_FACTORS[i] }))].sort((a, b) => b.v - a.v).slice(0, 3);
   const zone = live?.zone ?? d.zone;
   const risk = live?.risk ?? d.risk;
+  const ev = evidenceSummary(false);
+  const isPilot = d.n === "Wayanad" && d.s === "Kerala";
   const isFactor = (h: HazardKey): h is "flood" | "landslide" | "cloudburst" | "coastal" => ["flood", "landslide", "cloudburst", "coastal"].includes(h);
 
   return (
@@ -66,10 +72,17 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
           </div>
           <div style={{ textAlign: "right" }}>
             <b className="big num" style={{ color: ZONE_COLOR[zone] }}>{risk.toFixed(0)}%</b>
-            <div className="tiny muted">{live ? "72 h multi-hazard" : "annual multi-hazard"}</div>
+            <div className="tiny muted">{live ? "72 h alert level" : "annual multi-hazard"}</div>
           </div>
         </div>
-        {live && live.escalated && <div className="notice warn small">Escalated by the live forecast: the annual zone is {d.zone}.</div>}
+        <div className="notice info tiny">District hazard tier for screening — <b>not</b> a red zone. Red zones (unsuitable for permanent habitation) are decided per habitation.{isPilot && <> <button className="linklike" onClick={() => go("/relocation")}>See the Wayanad habitation-level pilot →</button></>}</div>
+        {live && live.escalated && <div className="notice warn small">Alert raised by the 72 h forecast: the baseline tier is {ZONE_LABEL[d.zone]}. Baselines only change with new evidence.</div>}
+        {alerts.length > 0 && (
+          <div className="notice tiny" style={{ background: "#f3e8fb", borderColor: "#d3b5ea", color: "#3d0f66" }}>
+            <b>Official NDMA SACHET alert{alerts.length > 1 ? "s" : ""}:</b>
+            <ul className="plain">{alerts.slice(0, 3).map((a) => <li key={a.id}>{a.title.length > 150 ? `${a.title.slice(0, 148)}…` : a.title}</li>)}</ul>
+          </div>
+        )}
 
         <div className="row" style={{ gap: 6 }}>
           <button className="btn sm" onClick={() => go("/hazards")}>Hazard intelligence</button>
@@ -77,7 +90,7 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
           <button className="btn sm saffron" onClick={() => go("/relocation")}>Plan relocation</button>
         </div>
 
-        <Section title="Hazard probability" aside={<span className="tiny muted">annual{live ? " · 72 h" : ""}</span>}>
+        <Section title="Hazard probability" aside={<span className="tiny muted">annual{live ? " · 72 h alert" : ""}</span>}>
           <div className="stack" style={{ gap: 8 }}>
             {HAZARDS.map((h) => {
               const p = d.P[h.key];
@@ -87,7 +100,7 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
                   <span className="hz-ico">{h.icon}</span>
                   <span className="grow" style={{ textAlign: "left" }}>
                     <span className="row" style={{ justifyContent: "space-between", gap: 4 }}>
-                      <b className="small">{h.label}</b>
+                      <b className="small">{h.label}{!h.inZone && <span className="tag" style={{ marginLeft: 6 }} title={h.note}>{h.kind === "index" ? "index" : "stress"}</span>}</b>
                       <span className="small num">
                         <b>{p.toFixed(0)}%</b>
                         {lp != null && <span className={lp > p + 3 ? "up" : lp < p - 3 ? "down" : ""}> → {lp.toFixed(0)}%</span>}
@@ -102,8 +115,9 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
           </div>
         </Section>
 
-        <Section title={`What is driving ${HAZARD_BY_KEY[open].label.toLowerCase()} risk`} aside={<span className="tiny muted">{returnPeriod(d.P[open])}</span>}>
+        <Section title={`What is driving ${HAZARD_BY_KEY[open].label.toLowerCase()} risk`} aside={<span className="tiny muted">{HAZARD_BY_KEY[open].kind === "prob" ? returnPeriod(d.P[open]) : "index — no return period"}</span>}>
           <p className="small muted">{whyText(d, open)}</p>
+          <p className="tiny muted">{HAZARD_BY_KEY[open].note}</p>
           {isFactor(open) && (
             <div className="stack" style={{ gap: 6, marginTop: 8 }}>
               {contributions(d, open).map((c) => (
@@ -153,7 +167,8 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
             <dt>Households</dt><dd>{lakh(d.hh)}</dd>
             <dt>Density</dt><dd>{lakh(d.dens)} / km²</dd>
             <dt>Vulnerability</dt><dd>{d.vband} · {d.vuln.toFixed(0)}/100</dd>
-            <dt>Risk index (H × E × V)</dt><dd>{d.risk_idx.toFixed(0)}/100</dd>
+            <dt>Risk index</dt><dd>{d.risk_idx.toFixed(0)}/100</dd>
+            <dt>Formula</dt><dd className="tiny">{RISK_FORMULA}</dd>
           </dl>
           <div className="small" style={{ marginTop: 8 }}><b>Most vulnerable on:</b></div>
           <ul className="plain small">
@@ -167,12 +182,35 @@ export default function DistrictDetail({ d, live, data, onClose }: { d: District
             <b className="num">priority {d.reloc.score.toFixed(0)}/100</b>
           </div>
           <p className="small muted" style={{ marginTop: 6 }}>{TIER_ACTION[d.reloc.tier]}</p>
-          {safe && (
+          <p className="tiny muted">Rank stability: this tier holds in <b>{d.reloc.stab.toFixed(0)}%</b> of 1,000 random weight sets; district is in the top 10% in {d.reloc.top.toFixed(0)}%.</p>
+          <p className="small" style={{ marginTop: 6 }}>
+            <b>Resettle inside the district first</b> — keeping people in the same block and Gram Panchayat preserves livelihoods, ration cards and schools. Site-level screening is in Relocation Intelligence.
+          </p>
+          {safe && d.reloc.safe_km <= 100 && (
             <p className="small" style={{ marginTop: 6 }}>
-              Nearest green-zone district: <b>{safe.n}</b> ({safe.s}), {d.reloc.safe_km} km away.{" "}
+              Fallback receiving district (screening only; lowest hazard and history, same state first): <b>{safe.n}</b> ({safe.s}), {d.reloc.safe_km} km away. A neighbouring district is not automatically safe — check its own hazards.{" "}
               <a href={googleDirections(d, safe)} target="_blank" rel="noreferrer">Directions ↗</a>
             </p>
           )}
+          {safe && d.reloc.safe_km > 100 && (
+            <p className="tiny muted" style={{ marginTop: 6 }}>No low-hazard, low-history district lies within 100 km, so a district-level receiving area is not suggested; resettlement is a site-level decision.</p>
+          )}
+        </Section>
+
+        <Section title="Terrain &amp; seismicity" aside={<span className="tag">SRTM zonal stats</span>}>
+          <dl className="kv">
+            <dt>Relief (p95 − p5)</dt><dd>{lakh(d.terr.relief)} m</dd>
+            <dt>Area steeper than 15° / 30°</dt><dd>{d.terr.s15.toFixed(0)}% / {d.terr.s30.toFixed(1)}%</dd>
+            <dt>Earthquakes M≥4.5 within 100 km</dt><dd>{d.seis.n}{d.seis.m6 ? ` · ${d.seis.m6} of M≥6` : ""}{d.seis.max ? ` · max M${d.seis.max.toFixed(1)}` : ""}</dd>
+          </dl>
+          <div className="tiny muted" style={{ marginTop: 4 }}>Observed seismicity (USGS 1990–2023) — context only, not the BIS IS 1893 zone.</div>
+        </Section>
+
+        <Section title="Evidence completeness">
+          <div className="row small" style={{ justifyContent: "space-between" }}><span>Framework variables with a real value</span><b className="num">{ev.completeness.toFixed(0)}%</b></div>
+          <Bar value={ev.completeness} color="var(--navy)" />
+          <div className="tiny muted" style={{ marginTop: 4 }}>{ev.counts.census} Census · {ev.counts.derived} derived · {ev.counts.osm} OpenStreetMap (live, on the Exposure page) · {ev.counts.gap} need survey data. Missing inputs are never scored as zero:</div>
+          <ul className="plain tiny">{ev.missingHazardInputs.map((m) => <li key={m.input}><b>{m.input}</b> → {m.used}</li>)}</ul>
         </Section>
 
         <Section title="Disaster history">

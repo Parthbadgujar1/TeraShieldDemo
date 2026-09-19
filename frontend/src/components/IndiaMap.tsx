@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { loadDistrictGeo, loadStateGeo } from "../lib/data";
 import type { LiveResult } from "../lib/liveRisk";
-import { CLASS_NAME, HAZARD_BY_KEY, ZONE_COLOR, ZONE_LABEL, zoneAndValue, type Layer } from "../lib/risk";
+import { HAZARD_BY_KEY, ZONE_COLOR, ZONE_LABEL, zoneAndValue, type Layer } from "../lib/risk";
 import type { District, Zone } from "../lib/types";
 
 export type { Layer };
@@ -25,6 +25,8 @@ export interface IndiaMapProps {
   selectedId: number | null;
   onSelect: (id: number) => void;
   base: Basemap;
+  /** districts named in an active official alert: drawn with a dashed purple outline */
+  alertIds?: Set<number>;
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
@@ -47,11 +49,13 @@ export default function IndiaMap(props: IndiaMapProps) {
     const { zone } = zoneAndValue(d, p.layer, p.live);
     const shown = p.zoneOn.has(zone) && (!p.stateFilter || d.s === p.stateFilter);
     const sel = p.selectedId === id;
+    const alerted = !!p.alertIds?.has(id) && shown;
     return {
       fillColor: ZONE_COLOR[zone],
       fillOpacity: shown ? 0.74 : 0.05,
-      color: sel ? "#072a4d" : "#ffffff",
-      weight: sel ? 2.6 : 0.5,
+      color: sel ? "#072a4d" : alerted ? "#4a148c" : "#ffffff",
+      weight: sel ? 2.6 : alerted ? 1.8 : 0.5,
+      dashArray: alerted && !sel ? "4 3" : undefined,
       opacity: shown || sel ? 1 : 0.35,
     };
   };
@@ -85,10 +89,11 @@ export default function IndiaMap(props: IndiaMapProps) {
               const d = p.districts.find((x) => x.id === id);
               if (!d) return "";
               const { zone, value, isLive } = zoneAndValue(d, p.layer, p.live);
-              const what = p.layer === "all" ? "Multi-hazard probability" : `${HAZARD_BY_KEY[p.layer].label} probability`;
+              const what = p.layer === "all" ? "Multi-hazard probability" : HAZARD_BY_KEY[p.layer].kind === "index" ? HAZARD_BY_KEY[p.layer].label : `${HAZARD_BY_KEY[p.layer].label} probability`;
+              const al = p.alertIds?.has(id) ? '<br><span style="color:#4a148c;font-weight:700">Official alert active</span>' : "";
               return `<b>${esc(d.n)}</b><br><span style="color:#5a6b7b">${esc(d.s)}</span><br>`
-                + `<span style="color:${ZONE_COLOR[zone]};font-weight:700">${ZONE_LABEL[zone]}</span> · ${CLASS_NAME[zone]}<br>`
-                + `${what}: <b>${value.toFixed(0)}%</b>${isLive ? " (72 h outlook)" : " (annual)"}`;
+                + `<span style="color:${ZONE_COLOR[zone]};font-weight:700">${ZONE_LABEL[zone]}</span> district tier<br>`
+                + `${what}: <b>${value.toFixed(0)}%</b>${isLive ? " (72 h alert)" : " (annual)"}${al}`;
             }, { sticky: true, direction: "top", className: "ts-tip" });
           },
         }).addTo(map);
@@ -116,7 +121,7 @@ export default function IndiaMap(props: IndiaMapProps) {
     if (!ready) return;
     byIdRef.current.forEach((path, id) => path.setStyle(styleFor(id)));
     if (props.selectedId != null) byIdRef.current.get(props.selectedId)?.bringToFront();
-  }, [ready, props.layer, props.live, props.zoneOn, props.stateFilter, props.selectedId, props.districts]);
+  }, [ready, props.layer, props.live, props.zoneOn, props.stateFilter, props.selectedId, props.districts, props.alertIds]);
 
   // fly to state
   useEffect(() => {

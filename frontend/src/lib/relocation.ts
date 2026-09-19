@@ -48,8 +48,23 @@ export interface Candidate {
   safety: number; // 0..1
   services: { hospitalKm: number | null; schoolKm: number | null; emergencyKm: number | null; fuelKm: number | null; pharmacyKm: number | null; known: boolean };
   servicesScore: number;
-  capacity: { shelter: number; land: number; total: number; schools: number; halls: number };
+  /** people the site can hold = min(space, water, access) constraints; hospitals are never counted as shelter */
+  capacity: { shelter: number; land: number; total: number; schools: number; halls: number; bind: "space" | "water"; water: "PARTIAL" | "UNVALIDATED" };
   capacityScore: number;
+  /** hard rejects: a permanent or long-stay site must not be in a high-susceptibility spot, whatever else it scores */
+  reject: string[];
+}
+
+/** Hard-reject thresholds on local susceptibility (0..1) and terrain. High susceptibility is a veto, not a 30% weight. */
+export const HARD_REJECT = { landslide: 0.4, flood: 0.55, slope: 20, handM: 2 };
+
+export function hardRejects(local: { flood: number; landslide: number }, slopeDeg: number, handM: number, riverKm: number | null): string[] {
+  const r: string[] = [];
+  if (local.landslide >= HARD_REJECT.landslide) r.push(`landslide susceptibility ${Math.round(local.landslide * 100)}/100 ≥ ${HARD_REJECT.landslide * 100}`);
+  if (local.flood >= HARD_REJECT.flood) r.push(`flood susceptibility ${Math.round(local.flood * 100)}/100 ≥ ${HARD_REJECT.flood * 100}`);
+  if (slopeDeg >= HARD_REJECT.slope) r.push(`slope ${slopeDeg.toFixed(0)}° ≥ ${HARD_REJECT.slope}°`);
+  if (riverKm != null && riverKm < 0.3 && handM <= HARD_REJECT.handM) r.push("river bank (≤ 2 m above nearby low ground)");
+  return r;
 }
 
 /** Rings of candidate destinations around the affected habitation. */
@@ -130,8 +145,8 @@ function countWithin(p: LatLon, list: Amenity[], types: string[], km: number): n
   return n;
 }
 
-/** Sphere / NDMA-style planning assumptions for capacity (documented in the UI). */
-export const CAPACITY_ASSUMPTIONS = { school: 230, college: 400, hall: 120, hospitalBeds: 60, parcelHa: 40, peoplePerHa: 55, netShare: 0.55 };
+/** Sphere / NDMA-style planning assumptions for capacity (documented in the UI). Hospital beds are deliberately absent. */
+export const CAPACITY_ASSUMPTIONS = { school: 230, college: 400, hall: 120, parcelHa: 40, peoplePerHa: 55, netShare: 0.55 };
 
 export interface BuildInput {
   origin: LatLon;
@@ -178,17 +193,22 @@ export function buildCandidates(input: BuildInput): Candidate[] {
       const schools = known ? countWithin(ll, amenities!, ["school"], 5) : 0;
       const colleges = known ? countWithin(ll, amenities!, ["college"], 5) : 0;
       const halls = known ? countWithin(ll, amenities!, ["community_centre", "shelter"], 5) : 0;
-      const beds = known ? countWithin(ll, amenities!, ["hospital"], 5) : 0;
-      const shelter = schools * A.school + colleges * A.college + halls * A.hall + beds * A.hospitalBeds;
+      const shelter = schools * A.school + colleges * A.college + halls * A.hall;
       const flat = 1 - clamp01((t.slope - 3) / 12);
       const land = Math.round(flat * A.parcelHa * A.peoplePerHa * A.netShare);
-      const total = shelter + land;
+      // capacity is the minimum of space and water: a stream/river within ~2 km is a partial (proxy) water source, otherwise unvalidated
+      const waterOk = riverKm != null && riverKm <= 2;
+      const space = shelter + land;
+      const total = Math.round(waterOk ? space : space * 0.6);
+      const reject = hardRejects(local, t.slope, t.hand, riverKm);
       return {
         id: `c${i}`, lat: p.lat, lon: p.lon, distKm: p.distKm, bearingDeg: p.bearingDeg,
         elev: elevations[i], slope: t.slope, hand: t.hand, riverKm, coastKm: coastKm != null && coastKm < 200 ? coastKm : null,
         local, risk, safety, services: svc, servicesScore,
-        capacity: { shelter, land, total, schools, halls },
-        capacityScore: clamp01(total / Math.max(population, 1)),
+        capacity: { shelter, land, total, schools, halls, bind: waterOk ? "space" : "water", water: waterOk ? "PARTIAL" : "UNVALIDATED" },
+        // saturates at 3x the people to be housed, so sites with more headroom score higher instead of all clipping at 100
+        capacityScore: clamp01(total / (3 * Math.max(population, 1))),
+        reject,
       };
     })
     .filter((c): c is Candidate => c !== null);
@@ -200,6 +220,7 @@ export interface PlanOption {
   scores: Weights;
   total: number;
   feasible: boolean;
+  rejected: boolean;
   blocked: boolean;
   effectiveMin: number | null;
   windowMin: number | null; // remaining evacuation window after preparation + travel
@@ -242,8 +263,9 @@ export function rank(cands: Candidate[], routes: Map<string, RouteOption[]>, opt
     const total = (Object.keys(w) as (keyof Weights)[]).reduce((s, k) => s + w[k] * scores[k], 0);
     const eff = best ? effectiveMinutes(best) : null;
     const window = eff != null ? ttiHours * 60 - prepMin - eff : null;
-    const feasible = c.safety >= 0.5 && !isBlocked && (best ? best.risk < 0.85 : true) && (window == null || ttiHours === 0 || window >= 0);
-    return { candidate: c, route: best, scores, total, feasible, blocked: isBlocked, effectiveMin: eff, windowMin: window, pareto: false };
+    const rejected = c.reject.length > 0;
+    const feasible = !rejected && c.safety >= 0.5 && !isBlocked && (best ? best.risk < 0.85 : true) && (window == null || ttiHours === 0 || window >= 0);
+    return { candidate: c, route: best, scores, total, feasible, rejected, blocked: isBlocked, effectiveMin: eff, windowMin: window, pareto: false };
   });
   const dims: (keyof Weights)[] = ["safety", "route", "capacity", "services"];
   for (const a of options) {
@@ -262,7 +284,8 @@ export interface MovementPlan {
   totalMin: number | null;
   elderly: number;
   disabled: number;
-  children: number;
+  /** Census 2011 age band 0-29 (the only youth band in the district table; 0-6 needs the PCA village tables) */
+  young: number;
   priorityOrder: string[];
 }
 
@@ -276,8 +299,8 @@ export function movementPlan(pop: number, d: District, route: RouteOption | null
     households: Math.round(pop / Math.max(pop && d.hh ? d.pop / d.hh : 5, 1)),
     buses, fleet, waves, totalMin,
     elderly: Math.round(pop * d.c.a50), // Census 2011 age 50+
-    disabled: Math.round(pop * 0.0221), // Census 2011 national prevalence
-    children: Math.round(pop * 0.3),
-    priorityOrder: ["Hospitalised & bed-ridden", "Persons with disabilities & reduced mobility", "Elderly (50+) and pregnant women", "Children with guardians", "Remaining households by hazard proximity"],
+    disabled: Math.round(pop * 0.0221), // Census 2011 national prevalence (district table C-20 not integrated)
+    young: Math.round(pop * d.c.a30),
+    priorityOrder: ["Hospitalised & bed-ridden", "Persons with disabilities & reduced mobility", "Elderly (50+) and pregnant women", "Young people with guardians", "Remaining households by hazard proximity"],
   };
 }

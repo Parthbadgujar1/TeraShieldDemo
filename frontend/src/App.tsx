@@ -10,6 +10,8 @@ const HazardIntelligence = lazy(() => import("./pages/HazardIntelligence"));
 const ExposureVulnerability = lazy(() => import("./pages/ExposureVulnerability"));
 const RelocationIntelligence = lazy(() => import("./pages/RelocationIntelligence"));
 const EmergencyPortal = lazy(() => import("./pages/EmergencyPortal"));
+const ActionPlan = lazy(() => import("./pages/ActionPlan"));
+const ValidationPage = lazy(() => import("./pages/ValidationPage"));
 
 const homeFor = (s: Session) => (s.scope === "admin" ? "/gis" : "/emergency");
 
@@ -31,6 +33,8 @@ export default function App() {
           <Route path="/hazards" element={<Guard session={session} allow={["admin"]}><HazardIntelligence /></Guard>} />
           <Route path="/exposure" element={<Guard session={session} allow={["admin"]}><ExposureVulnerability /></Guard>} />
           <Route path="/relocation" element={<Guard session={session} allow={["admin", "emergency_team"]}><RelocationIntelligence scope={session?.scope ?? "admin"} /></Guard>} />
+          <Route path="/plan" element={<Guard session={session} allow={["admin"]}><ActionPlan /></Guard>} />
+          <Route path="/validation" element={<Guard session={session} allow={["admin"]}><ValidationPage /></Guard>} />
           <Route path="/emergency" element={<Guard session={session} allow={["emergency_team"]}><EmergencyPortal /></Guard>} />
           <Route path="*" element={<Navigate to={session ? homeFor(session) : "/login"} replace />} />
         </Routes>

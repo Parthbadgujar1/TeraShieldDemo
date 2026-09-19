@@ -1,0 +1,32 @@
+name: Refresh official alerts
+
+# NDMA SACHET sends no CORS headers, so a static site cannot read it from the browser. This job snapshots the public CAP feed into
+# frontend/public/data/alerts.json every six hours; the push triggers a fresh Vercel deployment.
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch the SACHET feed and match it to districts
+        working-directory: data-pipeline
+        run: python fetch_alerts.py
+
+      - name: Commit if the snapshot changed
+        run: |
+          git config user.name "terashield-bot"
+          git config user.email "terashield-bot@users.noreply.github.com"
+          git add frontend/public/data/alerts.json
+          if git diff --cached --quiet; then echo "no change"; else git commit -m "Refresh NDMA SACHET alert snapshot" && git push; fi

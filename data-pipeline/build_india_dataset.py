@@ -4,11 +4,12 @@ Build the static all-India dataset that the TeraShield frontend ships with.
 Every number is computed from a named public dataset (see SOURCES in meta.json):
   * boundaries ........ GADM district polygons (2011-era, Telangana/Ladakh re-labelled)
   * population ........ Census of India 2011, district level
-  * terrain ........... SRTM elevation via Open-Meteo (5 points / district)
+  * terrain ........... SRTM-derived terrain tiles (AWS), zonal statistics over each district polygon
   * climate ........... NASA POWER (MERRA-2) daily rain + Tmax, 2014-2023
   * cyclones .......... NOAA IBTrACS North Indian Ocean tracks, 1990-2023
   * landslide history . NASA Global Landslide Catalog
   * coast / rivers .... Natural Earth 10m coastline + rivers
+  * seismicity ........ USGS ComCat M>=4.5, 1990-2023 (context only)
 
 Run:  python fetch_remote.py   (once, network)   then   python build_india_dataset.py
 """
@@ -28,7 +29,9 @@ from shapely.strtree import STRtree
 
 from common import (CACHE, CENSUS_STATE_TO_MODERN, ROOT, best_match, clamp01, haversine_km, load_csv, load_json,
                     modern_state, norm_name)
-from fetch_remote import fetch_climate, fetch_elevation, power_cell
+from fetch_dem import all_stats as dem_stats
+from fetch_remote import fetch_climate, power_cell
+from fetch_seismic import attach_seismic
 
 OUT = ROOT.parent / "frontend" / "public" / "data"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -48,6 +51,11 @@ SHORELINE = {
     "Maharashtra": 0.35, "Goa": 0.35, "Daman and Diu": 0.35,
 }
 COMPOSITE_W = dict(top=0.6, mean3=0.4)
+# Hazards that decide a zone. Heatwave stress goes to vulnerability; coastal erosion is a shoreline-retreat *rate* (m/yr) that
+# we cannot measure without shoreline-change data, so it is carried as a susceptibility index that may raise a zone to ORANGE
+# but never on its own to RED.
+ZONE_HAZARDS = ["flood", "landslide", "cloudburst", "cyclone"]
+COASTAL_ORANGE_INDEX = 0.40
 VBAND_CUTS = (0.70, 0.40)  # vulnerability index -> HIGH / MEDIUM / LOW
 ZONE_CUTS = dict(red=0.55, orange=0.42, yellow=0.28)      # composite hazard probability (0-1) -> zone
 TIER_CUTS = dict(immediate=62, short_term=50, medium_term=38)  # relocation priority (0-100)
@@ -56,13 +64,40 @@ SEASONS = (1990, 2023)
 IND_BOX = box(60, 4, 102, 40)
 
 
+# 2011-era GADM spellings -> names in use today (display only; matching to Census still uses the raw name)
+DISPLAY_NAMES = {
+    "Dehra Dun": "Dehradun", "Bangalore": "Bengaluru Urban", "Bangalore Rural": "Bengaluru Rural", "Gurgaon": "Gurugram",
+    "Allahabad": "Prayagraj", "Faizabad": "Ayodhya", "Mysore": "Mysuru", "Belgaum": "Belagavi", "Bijapur": "Vijayapura",
+    "Gulbarga": "Kalaburagi", "Shimoga": "Shivamogga", "Tumkur": "Tumakuru", "Chikmagalur": "Chikkamagaluru",
+    "Bellary": "Ballari", "Mahbubnagar": "Mahabubnagar", "Rangareddy": "Ranga Reddy", "Cuddapah": "YSR Kadapa",
+    "Nellore": "SPSR Nellore", "Visakhapatnam": "Visakhapatnam", "Pondicherry": "Puducherry", "Kanchipuram": "Kancheepuram",
+    "Thoothukudi": "Thoothukkudi", "Tuticorin": "Thoothukkudi", "Trichirappalli": "Tiruchirappalli", "Kanniyakumari": "Kanyakumari",
+    "Ahmadabad": "Ahmedabad", "Panch Mahals": "Panchmahal", "Sabar Kantha": "Sabarkantha", "Banas Kantha": "Banaskantha",
+    "Darjiling": "Darjeeling", "Jalpaiguri": "Jalpaiguri", "Hugli": "Hooghly", "Haora": "Howrah", "Puruliya": "Purulia",
+    "Bardhaman": "Purba Bardhaman", "Barddhaman": "Purba Bardhaman", "Kaimur (Bhabua)": "Kaimur", "Bhabua": "Kaimur",
+    "Sonepur": "Subarnapur", "Baudh": "Boudh", "Jajapur": "Jajpur", "Debagarh": "Deogarh", "Khordha": "Khurda",
+    "Narsimhapur": "Narsinghpur", "East Nimar": "Khandwa", "West Nimar": "Khargone", "Ahmadnagar": "Ahilyanagar",
+    "Greater Bombay": "Mumbai City", "Buldana": "Buldhana", "Gondiya": "Gondia", "Vashim": "Washim",
+    "Sahibzada Ajit Singh Nagar": "SAS Nagar (Mohali)", "Nawan Shehar": "Shahid Bhagat Singh Nagar", "Firozpur": "Ferozepur",
+    "Kheri": "Lakhimpur Kheri", "Sant Ravidas Nagar (Bhadohi)": "Bhadohi", "Mahrajganj": "Maharajganj", "Siddharth Nagar": "Siddharthnagar",
+    "Hardwar": "Haridwar", "Pauri Garhwal": "Pauri Garhwal", "Kinnaur": "Kinnaur", "Lahul and Spiti": "Lahaul and Spiti",
+}
+
+
 def zone_for(c: float) -> str:
     return "RED" if c >= ZONE_CUTS["red"] else "ORANGE" if c >= ZONE_CUTS["orange"] else "YELLOW" if c >= ZONE_CUTS["yellow"] else "GREEN"
 
 
-def tier_for(s: float) -> str:
-    return ("immediate" if s >= TIER_CUTS["immediate"] else "short_term" if s >= TIER_CUTS["short_term"]
-            else "medium_term" if s >= TIER_CUTS["medium_term"] else "monitor")
+def tier_for(s: float, zone: str = "RED") -> str:
+    """Relocation horizon from the priority score, gated by the hazard tier: low-hazard land is never on a relocation list
+    (GREEN -> monitor only) and moderate-hazard land is at most medium-term, however vulnerable the people are."""
+    t = ("immediate" if s >= TIER_CUTS["immediate"] else "short_term" if s >= TIER_CUTS["short_term"]
+         else "medium_term" if s >= TIER_CUTS["medium_term"] else "monitor")
+    if zone == "GREEN":
+        return "monitor"
+    if zone == "YELLOW" and t in ("immediate", "short_term"):
+        return "medium_term"
+    return t
 
 
 def num(r: dict, k: str) -> float:
@@ -87,6 +122,9 @@ def load_districts():
             raw_name, name = "Diu", "Diu"
         if raw_name == "Ladakh (Leh)":
             name = "Leh"
+        name = DISPLAY_NAMES.get(name, name)
+        if name == "Raigarh" and p["NAME_1"] == "Maharashtra":
+            name = "Raigad"
         state = modern_state(p["NAME_1"], raw_name)
         rp = g.representative_point()
         area = g.area * 111.32 * 110.57 * math.cos(math.radians(rp.y))
@@ -110,14 +148,12 @@ def attach_census(districts):
 
 # ---------------------------------------------------------------- 2. terrain + climate
 def attach_terrain(districts):
-    elev = fetch_elevation()
+    """Zonal terrain statistics over each district polygon (see fetch_dem.py)."""
+    stats = dem_stats(districts)
     for d in districts:
-        z = [float(v) for v in elev[str(d["id"])]]
-        c = z[0]
-        d["elev"] = float(np.mean(z))
-        d["elev_c"] = c
-        d["relief"] = max(z) - min(z)
-        d["slope"] = math.degrees(math.atan(np.mean([abs(v - c) for v in z[1:]]) / 13500.0))
+        t = stats[d["id"]]
+        d["elev"], d["relief"], d["slope"] = t["elev"], t["relief"], t["slope"]
+        d["steep15"], d["steep30"], d["elev_max"] = t["steep15"], t["steep30"], t["elev_max"]
 
 
 def longest_run(mask: np.ndarray) -> int:
@@ -272,19 +308,21 @@ def attach_geography(districts):
         for j in near:
             lat, lon, r = ev[int(j)]
             fat = int(float(r.get("fatality_count") or 0)) if (r.get("fatality_count") or "").strip().replace(".", "").isdigit() else 0
-            year = (r.get("event_date") or "")[:4]
+            ym = re.search(r"(19|20)\d{2}", (r.get("event_date") or "").split(" ")[0])   # catalogue dates are MM/DD/YYYY
+            year = ym.group(0) if ym else ""
             events.append(dict(year=int(year) if year.isdigit() else None, fat=fat,
                                where=(r.get("location_description") or r.get("event_title") or "").strip()[:70],
                                trigger=(r.get("landslide_trigger") or "").strip()[:24],
                                kind=(r.get("landslide_category") or "").strip()[:24]))
         events.sort(key=lambda e: (-(e["fat"]), -(e["year"] or 0)))
+        d["ls_years"] = [e["year"] for e in events if e["year"]]
         d["ls_events"] = len(events)
         d["ls_fatal"] = sum(e["fat"] for e in events)
         d["ls_top"] = events[:4]
 
 
 # ---------------------------------------------------------------- 5. hazard model
-def hazard_model(d: dict) -> None:
+def hazard_model(d: dict, ls_key: str = "ls_events") -> None:
     c, cy = d["clim"], d["cyc"]
     dens = d["c"]["pop"] / max(d["area"], 1)
     d["dens"] = dens
@@ -299,12 +337,20 @@ def hazard_model(d: dict) -> None:
         flat=flat, lulc=clamp01((math.log10(max(dens, 1)) - 1.3) / 2.0),
     )
     s_flood = sum(W_FLOOD[k] * f[k] for k in W_FLOOD)
+    # Hill districts flood as flash floods in steep river gorges (Beas 2023, Kedarnath 2013), which a low-elevation/flat-terrain
+    # score misses: take the larger of the floodplain score and a steep-basin flash-flood score.
+    flash = clamp01(relief / 800) * (0.45 * f["rain"] + 0.30 * clamp01(1 - d["river_km"] / 25) + 0.25 * clamp01(d["steep15"] / 0.5))
+    s_flood = max(s_flood, 0.85 * flash)
     p_flood = s_flood * (0.3 + 0.7 * clamp01(c["p65"]))
 
     # --- landslide (needs relief: flat terrain gates the score down)
+    # terrain: robust relief plus the share of the polygon that is actually steep (300 m DEM understates local slopes,
+    # so the thresholds are on the smoothed surface); rain: extreme daily rain plus wet-season total as antecedent moisture
     l = dict(
-        slope=clamp01(relief / 1400), rain=clamp01((c["rx1"] - 20) / 80),
-        history=clamp01(math.log1p(d["ls_events"]) / math.log1p(30)), stream=clamp01(1 - d["river_km"] / 30),
+        slope=clamp01(0.40 * clamp01(relief / 1500) + 0.35 * clamp01(d["steep15"] / 0.5) + 0.25 * clamp01(d["steep30"] / 0.10)),
+        rain=clamp01(0.6 * clamp01((c["rx1"] - 20) / 80) + 0.4 * clamp01((c["rain"] - 900) / 2200)),
+        history=clamp01(math.log1p(d[ls_key]) / math.log1p(30)),
+        stream=clamp01(1 - d["river_km"] / 30),
     )
     gate = clamp01(0.1 + relief / 350)
     s_ls = gate * sum(W_LANDSLIDE[k] * l[k] for k in W_LANDSLIDE)
@@ -335,11 +381,15 @@ def hazard_model(d: dict) -> None:
     d["factors"] = dict(flood=f, landslide=l, cloudburst=cb, coastal=co)
     d["S"] = dict(flood=s_flood, landslide=s_ls, cloudburst=s_cb, coastal=s_co)
     d["P"] = dict(flood=p_flood, landslide=p_ls, cloudburst=p_cb, coastal=p_co, cyclone=p_cy, heatwave=p_heat)
-    # Heatwave is life-threatening but does not make land uninhabitable, so it counts at 40% weight in the zone.
-    probs = sorted([v * (0.4 if k == "heatwave" else 1.0) for k, v in d["P"].items()], reverse=True)
+    # Zone = event-probability hazards only (see ZONE_HAZARDS). Heat stress is a vulnerability factor; coastal erosion can only
+    # raise a district to ORANGE (shoreline change needs a rate in m/yr, which needs multi-year shoreline data).
+    probs = sorted((d["P"][k] for k in ZONE_HAZARDS), reverse=True)
     d["composite"] = COMPOSITE_W["top"] * probs[0] + COMPOSITE_W["mean3"] * (sum(probs[:3]) / 3)
     d["zone"] = zone_for(d["composite"])
-    d["dominant"] = max(d["P"], key=d["P"].get)
+    d["coastal_flag"] = d["S"]["coastal"] >= COASTAL_ORANGE_INDEX
+    if d["coastal_flag"] and d["zone"] in ("YELLOW", "GREEN"):
+        d["zone"] = "ORANGE"
+    d["dominant"] = max(ZONE_HAZARDS, key=lambda k: d["P"][k])
 
 
 # ---------------------------------------------------------------- 6. exposure / vulnerability / relocation
@@ -368,8 +418,8 @@ def pct_norm(values: list[float], lo_q=5, hi_q=95):
     return lambda v: clamp01((v - lo) / max(hi - lo, 1e-9))
 
 
-W_VULN = dict(illiteracy=0.12, scst=0.08, elderly=0.08, agri=0.10, no_elec=0.08, no_lpg=0.10, dilapidated=0.12,
-              no_vehicle=0.10, no_phone=0.06, water_far=0.08, no_latrine=0.08)
+W_VULN = dict(illiteracy=0.11, scst=0.07, elderly=0.07, agri=0.09, no_elec=0.07, no_lpg=0.09, dilapidated=0.11,
+              no_vehicle=0.09, no_phone=0.05, water_far=0.07, no_latrine=0.07, heat_stress=0.11)
 
 
 def prepare_census(districts):
@@ -394,6 +444,7 @@ def vulnerability_and_priority(districts):
             illiteracy=1 - c["lit"], scst=c["scst"], elderly=c["a50"], agri=c["agri"], no_elec=1 - c["elec"],
             no_lpg=1 - c["lpg"], dilapidated=c["dil"], no_vehicle=max(0.0, 1 - (c["car"] + c["two"] + 0.5 * c["bike"])),
             no_phone=1 - c["phone"], water_far=c["far"], no_latrine=1 - c["latrine"],
+            heat_stress=0.7 * d["clim"]["heat_p"] + 0.3 * clamp01(d["clim"]["hot_days"] / 90),
         )
         for k in raw:
             raw[k].append(d["_v"][k])
@@ -408,19 +459,49 @@ def vulnerability_and_priority(districts):
         d["vband"] = "HIGH" if d["vuln"] >= VBAND_CUTS[0] else "MEDIUM" if d["vuln"] >= VBAND_CUTS[1] else "LOW"
 
     greens = [d for d in districts if d["zone"] == "GREEN"]
+    rng = np.random.default_rng(2026)
+    comps = []
     for d in districts:
         d["exp_frac"] = 0.05 + 0.95 * d["composite"]
         d["exp_pop"] = d["c"]["pop"] * d["exp_frac"]
         d["exp_idx"] = clamp01((math.log10(max(d["exp_pop"], 1)) - 4.0) / 2.2)
+        # One risk formula everywhere: Risk = Hazard x (0.5 Exposure + 0.5 Vulnerability)
         d["risk"] = d["composite"] * (0.5 * d["exp_idx"] + 0.5 * d["vuln"])
-        best = min(greens, key=lambda g: haversine_km(d["lat"], d["lon"], g["lat"], g["lon"])) if greens else d
-        d["safe_id"], d["safe_km"] = best["id"], haversine_km(d["lat"], d["lon"], best["lat"], best["lon"])
         hist = clamp01(0.45 * math.log1p(d["ls_events"]) / math.log1p(30) + 0.35 * clamp01(d["cyc"]["storms"] / 12) + 0.20 * d["clim"]["p100"])
         d["history"] = hist
+    # Receiving district (screening only): same state first, low modelled hazard, low history; never a settlement decision.
+    # The pilot habitation planner and the in-app site screening make the real siting call.
+    for d in districts:
+        pool_state = [g for g in greens if g["state"] == d["state"] and g["id"] != d["id"] and g["history"] < 0.35]
+        pool_any = [g for g in greens if g["id"] != d["id"] and g["history"] < 0.35] or [g for g in greens if g["id"] != d["id"]]
+        pool = pool_state or pool_any
+        best = min(pool, key=lambda g: haversine_km(d["lat"], d["lon"], g["lat"], g["lon"])) if pool else d
+        d["safe_id"], d["safe_km"] = best["id"], haversine_km(d["lat"], d["lon"], best["lat"], best["lon"])
         zone_score = {"RED": 100, "ORANGE": 70, "YELLOW": 35, "GREEN": 5}[d["zone"]]
         feas = 100 * clamp01(1 - d["safe_km"] / 120)
-        d["priority"] = 0.35 * zone_score + 0.25 * d["vuln"] * 100 + 0.15 * d["exp_idx"] * 100 + 0.15 * hist * 100 + 0.10 * feas
-        d["tier"] = tier_for(d["priority"])
+        comps.append([zone_score, d["vuln"] * 100, d["exp_idx"] * 100, d["history"] * 100, feas])
+        d["priority"] = 0.35 * zone_score + 0.25 * d["vuln"] * 100 + 0.15 * d["exp_idx"] * 100 + 0.15 * d["history"] * 100 + 0.10 * feas
+        d["tier"] = tier_for(d["priority"], d["zone"])
+
+    # Rank stability: redraw the five priority weights 1,000 times around the defaults (Dirichlet) and record how often each
+    # district keeps its tier and how often it lands in the top 10% -- answers "why 0.35 and not 0.40?".
+    base_w = np.array([0.35, 0.25, 0.15, 0.15, 0.10])
+    C = np.array(comps)
+    n = len(districts)
+    same = np.zeros(n)
+    top = np.zeros(n)
+    tier_of = np.array([["immediate", "short_term", "medium_term", "monitor"].index(d["tier"]) for d in districts])
+    cuts = np.array([TIER_CUTS["immediate"], TIER_CUTS["short_term"], TIER_CUTS["medium_term"]])
+    zone_i = np.array([["RED", "ORANGE", "YELLOW", "GREEN"].index(d["zone"]) for d in districts])
+    runs = 1000
+    for w in rng.dirichlet(base_w * 40, size=runs):
+        sc = C @ w
+        t = 3 - (sc[:, None] >= cuts[None, :]).sum(axis=1)
+        t = np.where(zone_i == 3, 3, np.where((zone_i == 2) & (t < 2), 2, t))   # same zone gating as tier_for
+        same += t == tier_of
+        top += sc >= np.percentile(sc, 90)
+    for i, d in enumerate(districts):
+        d["stab_tier"], d["stab_top"] = same[i] / runs, top[i] / runs
 
 
 # ---------------------------------------------------------------- 7. output
@@ -456,7 +537,10 @@ def district_record(d: dict) -> dict:
         "risk_idx": pct(d["risk"]),
         "hist": {"ls": d["ls_events"], "lsf": d["ls_fatal"], "cyc": d["cyc"]["storms"], "cycs": d["cyc"]["severe"],
                  "kt": r0(d["cyc"]["max_kt"]), "idx": pct(d["history"])},
-        "reloc": {"score": r1(d["priority"]), "tier": d["tier"], "safe": d["safe_id"], "safe_km": r0(d["safe_km"])},
+        "reloc": {"score": r1(d["priority"]), "tier": d["tier"], "safe": d["safe_id"], "safe_km": r0(d["safe_km"]),
+                  "stab": pct(d["stab_tier"]), "top": pct(d["stab_top"])},
+        "terr": {"relief": r0(d["relief"]), "slope": r1(d["slope"]), "s15": pct(d["steep15"]), "s30": pct(d["steep30"]), "emax": r0(d["elev_max"])},
+        "seis": d["seis"], "cflag": bool(d["coastal_flag"]),
     }
 
 
@@ -515,6 +599,7 @@ def main():
     attach_climate(districts)
     cyclone_stats(districts)
     attach_geography(districts)
+    attach_seismic(districts)
     for d in districts:
         hazard_model(d)
     vulnerability_and_priority(districts)

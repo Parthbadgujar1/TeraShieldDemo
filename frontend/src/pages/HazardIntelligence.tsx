@@ -68,8 +68,8 @@ export default function HazardIntelligence() {
         <div className="grow">
           <h1>Hazard Intelligence</h1>
           <p>
-            Annual occurrence probability of six hazards for every district in India — built from 2014–2023 climatology, SRTM terrain,
-            river and coast geometry, and cyclone and landslide event history. Choose a hazard, then filter by state, district and risk level.
+            Annual occurrence probability of flood, landslide, cloudburst potential, cyclone and heatwave, plus a coastal-erosion susceptibility index, for every district in India — built from 2014–2023 climatology, SRTM terrain
+            statistics over each district polygon, river and coast geometry, and cyclone and landslide event history. A district is a screening tier, not a red zone.
           </p>
         </div>
         <span className="tag census">Static national dataset · {data.meta.districts} districts · {data.meta.states} states/UTs</span>
@@ -77,11 +77,11 @@ export default function HazardIntelligence() {
 
       <div className="hz-cards" role="tablist" aria-label="Hazard">
         <button role="tab" aria-selected={focus === "overview"} className={`hz-card${focus === "overview" ? " on" : ""}`} onClick={() => setFocusReset("overview")}>
-          <span className="ico">◎</span><b>All hazards</b><span className="tiny muted">{data.meta.zone_counts.RED} red-zone districts</span>
+          <span className="ico">◎</span><b>All hazards</b><span className="tiny muted">{data.meta.zone_counts.RED} very-high-hazard districts</span>
         </button>
         {HAZARDS.map((h) => (
           <button key={h.key} role="tab" aria-selected={focus === h.key} className={`hz-card${focus === h.key ? " on" : ""}`} style={focus === h.key ? { borderColor: h.color } : undefined} onClick={() => setFocusReset(h.key)}>
-            <span className="ico">{h.icon}</span><b>{h.label}</b><span className="tiny muted">{nationalCounts(h.key)} districts ≥ {HAZARD_CUTS.orange}%</span>
+            <span className="ico">{h.icon}</span><b>{h.label}</b><span className="tiny muted">{nationalCounts(h.key)} districts ≥ {HAZARD_CUTS.orange}%{h.kind === "index" ? " (index)" : !h.inZone ? " (stress)" : ""}</span>
           </button>
         ))}
       </div>
@@ -324,8 +324,7 @@ export default function HazardIntelligence() {
             <div className="card card-pad stack">
               <h3>How to read this page</h3>
               <p className="small">
-                Every probability is the modelled chance that the hazard occurs in the district in a given year. The class colours follow the
-                red-zone convention used across TeraShield.
+                Every probability is the modelled chance that the hazard occurs in the district in a given year (coastal erosion is an index, not a probability). The colours are district hazard tiers — <b>not</b> red zones, which are decided per habitation. Heatwave is shown as stress and feeds vulnerability; it does not decide the tier.
               </p>
               <div className="stack" style={{ gap: 6 }}>
                 {ZONES.map((z) => (
@@ -341,7 +340,8 @@ export default function HazardIntelligence() {
               <Provenance title="Data sources & limits">
                 <ul className="plain">
                   <li>Rain and temperature: NASA POWER (MERRA-2) daily, 2014–2023</li>
-                  <li>Terrain: SRTM via Open-Meteo, sampled ±13 km around each district centre</li>
+                  <li>Terrain: SRTM-derived terrain tiles (AWS), zonal statistics over each district polygon — relief, mean slope, share of area over 15° and 30°</li>
+                  <li>Seismicity: USGS M≥4.5 catalogue, 1990–2023 (context only; not the BIS zone map)</li>
                   <li>Cyclones: NOAA IBTrACS, 1990–2023; landslides: NASA Global Landslide Catalog</li>
                   <li>Rivers and coast: Natural Earth 10 m; population: Census of India 2011</li>
                   <li>District-scale estimates — they rank districts, they do not replace local surveys.</li>
@@ -354,10 +354,13 @@ export default function HazardIntelligence() {
             <div className="card card-pad stack">
               <h3>What makes TeraShield different</h3>
               <ul className="plain small">
-                <li><b>Dynamic red zones.</b> The annual map is re-scored every 45 minutes from the live 72-hour forecast — zones move with the weather.</li>
+                <li><b>Evidence-ratcheted red zones.</b> Weather can only raise an alert on top of the baseline — a dry week never relabels land as safe. Zones move up on new evidence and down only with recorded evidence and sign-off (Zone Register).</li>
+                <li><b>Habitation-level red zones.</b> A pilot district shows terrain-derived red zones below village level, with buildings, people and approvals — the national map stays the screening layer.</li>
+                <li><b>Permanent resettlement ≠ evacuation.</b> Land status, livelihood reach, approvals and a months-to-years timeline sit in their own track.</li>
+                <li><b>An accuracy number.</b> The model is frozen on data up to 2014 and tested on later landslides and cyclones, with weight-sensitivity and honest baselines (Validation tab).</li>
                 <li><b>Hazard-aware evacuation routing.</b> Real road routes are scored against forecast rain and terrain, so a road that will flood or slip is priced in before people are sent down it.</li>
                 <li><b>Multi-objective relocation.</b> Safety, road, capacity, services, cost and community are traded off with adjustable weights; Pareto-optimal sites are flagged.</li>
-                <li><b>Three-phase logic.</b> Predicted, imminent and active-event modes change the priorities, and blocked roads trigger instant re-optimisation.</li>
+                <li><b>Three-phase evacuation logic.</b> Predicted, imminent and active-event modes change the priorities, and blocked roads trigger instant re-optimisation.</li>
                 <li><b>Explainable and honest.</b> Every score shows its factors, and every variable states whether it is live, Census, computed or still needs survey data.</li>
               </ul>
             </div>

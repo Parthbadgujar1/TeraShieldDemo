@@ -1,10 +1,11 @@
 import { Fragment, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AlertControls, SachetPanel } from "../components/AlertControls";
 import IndiaMap from "../components/IndiaMap";
 import { Bar, DistrictPicker, ErrorBox, Loading, Stat, ZoneBadge } from "../components/ui";
 import { useDataset } from "../lib/data";
 import { googlePlace } from "../lib/geo";
-import { useLiveOutlook, useViewMode } from "../lib/useLive";
+import { useLiveOutlook, useReplayChoice, useViewMode } from "../lib/useLive";
 import { HAZARDS, HAZARD_BY_KEY, TIER_COLOR, TIER_LABEL, ZONES, ZONE_COLOR, compact, lakh, zoneRows, zoneSummary, type Layer } from "../lib/risk";
 
 const ALL_ZONES = new Set(ZONES);
@@ -31,7 +32,9 @@ export default function EmergencyPortal() {
   const [stateF, setStateF] = useState("");
   const [hazard, setHazard] = useState<Layer>("all");
   const [selId, setSelId] = useState<number | null>(null);
-  const { live, progress, stamp, failed } = useLiveOutlook(data, mode, setMode);
+  const [replayId, setReplay] = useReplayChoice();
+  const liveState = useLiveOutlook(data, mode, setMode, replayId);
+  const { live, progress, stamp, failed } = liveState;
 
   // Same zone maths as the admin dashboard (lib/risk.ts) — the two portals cannot disagree.
   const all = useMemo(() => (data ? zoneRows(data.districts, hazard, live, stateF) : []), [data, hazard, live, stateF]);
@@ -56,22 +59,26 @@ export default function EmergencyPortal() {
           <b>Emergency Response Team — operational view</b>
           <div className="small">
             {loading ? <><span className="spinner" /> Pulling the live 72-hour forecast for {data.districts.length} districts… {progress?.done}/{progress?.total}</>
-              : live ? <>Live 72-hour outlook updated {stamp?.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} · Open-Meteo forecast</>
-                : <>Annual hazard probability — the same figures the state dashboard shows{failed ? " (live forecast unreachable)" : ""}</>}
+              : live ? <>72-hour alert overlay · {liveState.source === "replay" ? `replay of ${liveState.replay?.title}` : `updated ${stamp?.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}${liveState.source === "stale" ? " (cached — API unavailable)" : ""}`} · baseline tiers never fall</>
+                : <>Annual baseline — the same figures the state dashboard shows{failed ? " (forecast unreachable)" : ""}</>}
           </div>
         </div>
         <div className="seg em-seg" role="group" aria-label="Time view">
-          <button className={mode === "annual" ? "on" : ""} onClick={() => setMode("annual")}>Annual</button>
-          <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>Live 72 h</button>
+          <button className={mode === "annual" ? "on" : ""} onClick={() => setMode("annual")}>Baseline</button>
+          <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>72 h alert</button>
         </div>
         {live && <span className="live-pill"><span className="live-dot" /> LIVE</span>}
       </div>
 
       <div className="grid g4" style={{ marginBottom: 14 }}>
-        <Stat value={counts.RED} label="red-zone districts" tone="red" />
-        <Stat value={counts.ORANGE} label="orange-zone districts" tone="orange" />
-        <Stat value={compact(redPop)} label={`people in red-zone districts · ${compact(redExposed)} exposed`} />
-        <Stat value={live ? escalated : "—"} label={live ? "escalated by the forecast" : "switch to Live 72 h to see escalations"} />
+        <Stat value={counts.RED} label="very-high-hazard districts" tone="red" />
+        <Stat value={counts.ORANGE} label="high-hazard districts" tone="orange" />
+        <Stat value={compact(redPop)} label={`people living in very-high-hazard districts · ${compact(redExposed)} exposed (screening)`} />
+        <Stat value={live ? escalated : "—"} label={live ? "alerts raised by the forecast" : "switch to 72 h alert to see escalations"} />
+      </div>
+
+      <div className="card card-pad" style={{ marginBottom: 14 }}>
+        <AlertControls mode={mode} setMode={setMode} replayId={replayId} setReplay={setReplay} state={liveState} escalated={escalated} />
       </div>
 
       <div className="card card-pad filters" style={{ marginBottom: 14 }}>
@@ -87,14 +94,14 @@ export default function EmergencyPortal() {
 
       <div className="grid g2" style={{ alignItems: "start" }}>
         <div className="card">
-          <div className="card-head"><h3>Live risk map</h3><span className="tiny muted">click a district to prioritise it</span></div>
+          <div className="card-head"><h3>Hazard map</h3><span className="tiny muted">click a district to prioritise it</span></div>
           <div className="em-map">
             <IndiaMap districts={data.districts} layer={hazard} live={live} zoneOn={ALL_ZONES} stateFilter={stateF} selectedId={selId} onSelect={setSelId} base="light" />
           </div>
         </div>
 
         <div className="card">
-          <div className="card-head"><h3>Rescue priority</h3><span className="tiny muted">live risk × (½ exposure + ½ vulnerability)</span></div>
+          <div className="card-head"><h3>Rescue priority</h3><span className="tiny muted">hazard × (½ exposure + ½ vulnerability)</span></div>
           <div className="table-wrap" style={{ border: 0, borderRadius: 0, maxHeight: 470 }}>
             <table className="t">
               <thead><tr><th>#</th><th>District</th><th>Zone</th><th className="r">Risk</th><th>Threat</th><th className="r">Exposed</th><th style={{ minWidth: 90 }}>Priority</th><th /></tr></thead>
@@ -129,7 +136,7 @@ export default function EmergencyPortal() {
             </div>
             <div className="card-pad grid g3">
               <div className="stack" style={{ gap: 6 }}>
-                <div className="label">Hazards now (72 h) vs. annual</div>
+                <div className="label">72 h alert level / annual baseline</div>
                 {HAZARDS.map((h) => (
                   <div key={h.key} className="row small" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
                     <span>{h.icon} {h.label}</span><b className="num">{(lr?.P[h.key] ?? d.P[h.key]).toFixed(0)}% <span className="muted tiny">/ {d.P[h.key].toFixed(0)}%</span></b>
@@ -138,7 +145,7 @@ export default function EmergencyPortal() {
               </div>
               <dl className="kv" style={{ alignContent: "start" }}>
                 <dt>Population</dt><dd>{lakh(d.pop)}</dd><dt>Exposed</dt><dd>{lakh(d.expo.pop)}</dd><dt>Households</dt><dd>{lakh(d.hh)}</dd>
-                <dt>Vulnerability</dt><dd>{d.vband}</dd><dt>Nearest safe district</dt><dd>{data.byId.get(d.reloc.safe)?.n} · {d.reloc.safe_km} km</dd>
+                <dt>Vulnerability</dt><dd>{d.vband}</dd><dt>Fallback receiving district</dt><dd>{d.reloc.safe_km <= 100 ? `${data.byId.get(d.reloc.safe)?.n} · ${d.reloc.safe_km} km` : "none within 100 km — resettle within the district"}</dd>
               </dl>
               <div className="small muted">Use the evacuation planner to choose a destination, check road exposure against the forecast and simulate a blocked route.</div>
             </div>
@@ -150,6 +157,10 @@ export default function EmergencyPortal() {
         <div className="card card-pad stack" style={{ gap: 8 }}>
           <h3>Emergency numbers</h3>
           <dl className="kv">{CONTACTS.map(([n, l]) => <Fragment key={n}><dt>{l}</dt><dd>{n}</dd></Fragment>)}</dl>
+        </div>
+        <div className="card card-pad stack" style={{ gap: 8 }}>
+          <h3>Official alerts (NDMA SACHET)</h3>
+          <SachetPanel districts={data.byId} onPick={setSelId} stateFilter={stateF} limit={4} />
         </div>
         <div className="card card-pad stack" style={{ gap: 8 }}>
           <h3>Official warning sources</h3>

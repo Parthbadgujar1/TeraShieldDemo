@@ -1,17 +1,15 @@
 import { smooth } from "./geo";
-import { HAZARDS, ZONES, zoneForComposite } from "./risk";
+import { HAZARDS, ZONES, ZONE_HAZARDS, worseZone, zoneForComposite } from "./risk";
 import type { District, Forecast, HazardKey, Zone } from "./types";
 
 /**
- * 72-hour outlook = climatological annual probability x live trigger multiplier.
- * The multiplier runs from `floor` (trigger absent) to 2.0 (trigger fully met), so a district whose
- * baseline is high stays high only while the weather can actually set the hazard off.
+ * 72-hour alert layer = baseline x live trigger multiplier, **never below the baseline**.
+ * A dry week must not turn a landslide-prone district green, so the forecast can only raise an alert on top of the
+ * evidence-based baseline: P_alert = max(P_baseline, P_baseline x multiplier) with the multiplier running 1.0 -> 2.0 as
+ * the trigger (rain / wind / temperature) is met. Baseline zones change only with observed evidence, not with the weather.
  */
-const FLOOR: Record<HazardKey, number> = { flood: 0.5, landslide: 0.5, cloudburst: 0.3, coastal: 0.6, cyclone: 0.25, heatwave: 0 };
-
-export function multiplier(hazard: HazardKey, trigger: number): number {
-  const f = FLOOR[hazard];
-  return f + (2 - f) * trigger;
+export function multiplier(_hazard: HazardKey, trigger: number): number {
+  return 1 + trigger;
 }
 
 export function triggers(d: District, f: Forecast): Record<HazardKey, number> {
@@ -28,26 +26,31 @@ export function triggers(d: District, f: Forecast): Record<HazardKey, number> {
 }
 
 export interface LiveResult {
+  /** alert-level probabilities (>= baseline) */
   P: Record<HazardKey, number>;
   trig: Record<HazardKey, number>;
   risk: number;
+  /** worse of the baseline tier and the tier implied by the 72-h alert */
   zone: Zone;
   dom: HazardKey;
   delta: number;
   escalated: boolean;
 }
 
+/** Composite over the hazards that decide a zone (heatwave and the coastal index are excluded). */
 export function composite(P: Record<HazardKey, number>): number {
-  const vals = HAZARDS.map((h) => P[h.key] * (h.key === "heatwave" ? 0.4 : 1)).sort((a, b) => b - a);
+  const vals = ZONE_HAZARDS.map((h) => P[h.key]).sort((a, b) => b - a);
   return 0.6 * vals[0] + 0.4 * ((vals[0] + vals[1] + vals[2]) / 3);
 }
 
 export function liveOutlook(d: District, f: Forecast): LiveResult {
   const trig = triggers(d, f);
   const P = {} as Record<HazardKey, number>;
-  for (const h of HAZARDS) P[h.key] = Math.min(95, d.P[h.key] * multiplier(h.key, trig[h.key]));
-  const risk = composite(P);
-  const zone = zoneForComposite(risk);
-  const dom = HAZARDS.reduce((a, b) => (P[b.key] > P[a.key] ? b : a)).key;
+  for (const h of HAZARDS) P[h.key] = Math.max(d.P[h.key], Math.min(95, d.P[h.key] * multiplier(h.key, trig[h.key])));
+  const live = composite(P);
+  const raised = live > d.risk + 0.05; // the forecast must actually lift the score; rounding in the stored baseline is not an alert
+  const risk = Math.max(d.risk, live);
+  const zone = raised ? worseZone(d.zone, zoneForComposite(risk)) : d.zone;
+  const dom = ZONE_HAZARDS.reduce((a, b) => (P[b.key] > P[a.key] ? b : a)).key;
   return { P, trig, risk, zone, dom, delta: risk - d.risk, escalated: ZONES.indexOf(zone) < ZONES.indexOf(d.zone) };
 }

@@ -10,30 +10,47 @@ export const ZONE_COLOR: Record<Zone, string> = {
   GREEN: "#2e9e4f",
 };
 
+/**
+ * A district is a screening unit, not a red zone. PS 26191 defines red zones as *areas unsuitable for permanent habitation*,
+ * which is a habitation-level judgement (see the pilot in Relocation Intelligence). District colours are hazard tiers.
+ */
 export const ZONE_LABEL: Record<Zone, string> = {
-  RED: "Red zone",
-  ORANGE: "Orange zone",
-  YELLOW: "Yellow zone",
-  GREEN: "Green zone",
+  RED: "Very high hazard",
+  ORANGE: "High hazard",
+  YELLOW: "Moderate hazard",
+  GREEN: "Low hazard",
 };
 
 export const ZONE_MEANING: Record<Zone, string> = {
-  RED: "Unsuitable for permanent habitation — plan relocation",
-  ORANGE: "High hazard — mitigation and relocation readiness",
+  RED: "Very-high-hazard district — prioritise habitation-level red-zone survey",
+  ORANGE: "High-hazard district — survey habitations, plan mitigation and readiness",
   YELLOW: "Moderate hazard — monitor and prepare",
-  GREEN: "Low hazard — suitable for resettlement",
+  GREEN: "Low modelled hazard — still needs site-level checks before any settlement decision",
 };
 
-export interface HazardDef { key: HazardKey; label: string; short: string; icon: string; color: string }
+/** Habitation-level term, used only where polygons/points below district scale exist. */
+export const RED_ZONE_DEF = "Red zone = an area unsuitable for permanent habitation (PS 26191). It is decided per habitation, not per district.";
+
+export interface HazardDef {
+  key: HazardKey; label: string; short: string; icon: string; color: string;
+  /** "prob" = annual event probability; "index" = susceptibility index (0-100), not a probability */
+  kind: "prob" | "index";
+  /** whether it decides a district's zone */
+  inZone: boolean;
+  note: string;
+}
 
 export const HAZARDS: HazardDef[] = [
-  { key: "flood", label: "Flood", short: "Flood", icon: "🌊", color: "#1e6fd9" },
-  { key: "landslide", label: "Landslide", short: "Landslide", icon: "⛰️", color: "#8a5a2b" },
-  { key: "cloudburst", label: "Cloudburst", short: "Cloudburst", icon: "⛈️", color: "#5b4fc4" },
-  { key: "coastal", label: "Coastal erosion", short: "Coastal", icon: "🏖️", color: "#0f9aa8" },
-  { key: "cyclone", label: "Cyclone", short: "Cyclone", icon: "🌀", color: "#c2185b" },
-  { key: "heatwave", label: "Heatwave", short: "Heatwave", icon: "🔥", color: "#e64a19" },
+  { key: "flood", label: "Flood", short: "Flood", icon: "🌊", color: "#1e6fd9", kind: "prob", inZone: true, note: "Annual probability of a damaging flood." },
+  { key: "landslide", label: "Landslide", short: "Landslide", icon: "⛰️", color: "#8a5a2b", kind: "prob", inZone: true, note: "Annual probability of a damaging landslide." },
+  { key: "cloudburst", label: "Cloudburst potential", short: "Cloudburst", icon: "⛈️", color: "#5b4fc4", kind: "prob", inZone: true, note: "Potential from a ~50 km reanalysis grid: cloudbursts are local, so this ranks districts, it does not locate events." },
+  { key: "coastal", label: "Coastal erosion (index)", short: "Coastal", icon: "🏖️", color: "#0f9aa8", kind: "index", inZone: false, note: "Susceptibility index, not a probability: erosion is a shoreline-retreat rate in m/yr that needs multi-year shoreline data. It can lift a district to High hazard, never to Very high by itself." },
+  { key: "cyclone", label: "Cyclone", short: "Cyclone", icon: "🌀", color: "#c2185b", kind: "prob", inZone: true, note: "Share of seasons (1990–2023) with an IMD cyclonic storm within 150 km." },
+  { key: "heatwave", label: "Heatwave (stress)", short: "Heatwave", icon: "🔥", color: "#e64a19", kind: "prob", inZone: false, note: "IMD-criteria heatwave frequency. Heat does not make land uninhabitable, so it feeds vulnerability, not the zone." },
 ];
+
+/** Hazards whose probabilities decide a district's tier. */
+export const ZONE_HAZARDS = HAZARDS.filter((h) => h.inZone);
 
 export const HAZARD_BY_KEY = Object.fromEntries(HAZARDS.map((h) => [h.key, h])) as Record<HazardKey, HazardDef>;
 
@@ -50,6 +67,10 @@ export function applyMeta(meta: Meta) {
   };
 }
 
+export function worseZone(a: Zone, b: Zone): Zone {
+  return ZONES.indexOf(a) <= ZONES.indexOf(b) ? a : b;
+}
+
 export function zoneForComposite(pct: number): Zone {
   return pct >= ZONE_CUTS.red ? "RED" : pct >= ZONE_CUTS.orange ? "ORANGE" : pct >= ZONE_CUTS.yellow ? "YELLOW" : "GREEN";
 }
@@ -57,6 +78,8 @@ export function zoneForComposite(pct: number): Zone {
 export function zoneForHazard(pct: number): Zone {
   return pct >= HAZARD_CUTS.red ? "RED" : pct >= HAZARD_CUTS.orange ? "ORANGE" : pct >= HAZARD_CUTS.yellow ? "YELLOW" : "GREEN";
 }
+
+export const RISK_FORMULA = "Risk = Hazard × (½ Exposure + ½ Vulnerability)";
 
 export const CLASS_NAME: Record<Zone, string> = { RED: "Very high", ORANGE: "High", YELLOW: "Moderate", GREEN: "Low" };
 

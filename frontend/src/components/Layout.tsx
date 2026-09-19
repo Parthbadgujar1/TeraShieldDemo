@@ -24,6 +24,16 @@ const Icon = {
       <circle cx="6" cy="18" r="2.2" /><path d="M12 22s5-4.6 5-9.2a5 5 0 0 0-10 0C7 17.4 12 22 12 22Z" transform="translate(5 -12) scale(.7)" /><path d="M8.3 18H15a3 3 0 0 0 0-6H9.5a3 3 0 0 1 0-6H14" />
     </svg>
   ),
+  plan: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 3h8l4 4v14H7z" /><path d="M15 3v4h4M10 12h6M10 16h6" />
+    </svg>
+  ),
+  check: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /><path d="m14 6 2 2 4-4" />
+    </svg>
+  ),
   siren: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M6 18v-5a6 6 0 0 1 12 0v5" /><path d="M4 18h16v3H4zM12 3v2M4.5 6l1.4 1.4M19.5 6l-1.4 1.4" />
@@ -38,6 +48,8 @@ const ADMIN_NAV: NavItem[] = [
   { to: "/hazards", label: "Hazard Intelligence", icon: Icon.hazard },
   { to: "/exposure", label: "Exposure & Vulnerability", icon: Icon.people },
   { to: "/relocation", label: "Relocation Intelligence", icon: Icon.route },
+  { to: "/plan", label: "Action Plan", icon: Icon.plan },
+  { to: "/validation", label: "Validation & Data", icon: Icon.check },
 ];
 const RESCUE_NAV: NavItem[] = [
   { to: "/emergency", label: "Emergency Response", icon: Icon.siren },
@@ -125,7 +137,7 @@ export default function Layout({ session, children }: { session: Session; childr
             TeraShield · Intelligent identification of hazard-based red zones, carrying-capacity assessment and immediate relocation needs for vulnerable habitations.
           </span>
           <span>
-            Data: Census 2011 · NASA POWER · NOAA IBTrACS · NASA GLC · SRTM · OpenStreetMap · Open-Meteo. Prototype — not for operational decisions.
+            Data: Census 2011 · NASA POWER · NOAA IBTrACS · NASA GLC · SRTM · USGS · WorldPop · NDMA SACHET · OpenStreetMap · Open-Meteo. District boundaries are 2011-era (594 districts) and indicative, not the Survey of India depiction. Prototype with a browser-side demo login (production: SDMA single sign-on) — not for operational decisions.
           </span>
         </div>
       </footer>

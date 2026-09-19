@@ -31,7 +31,7 @@ export const HAZARD_INFO: Record<HazardKey, HazardInfo> = {
         { factor: "Rain factor (5-day maximum rainfall)", weight: "0.35", source: "NASA POWER daily rainfall, 2014–2023", kind: "climatology" },
         { factor: "Low-elevation factor", weight: "0.25", source: "SRTM elevation (via Open-Meteo)", kind: "static" },
         { factor: "River-proximity / floodplain factor", weight: "0.20", source: "Natural Earth major rivers + floodplain proxy", kind: "static" },
-        { factor: "Flat-terrain factor", weight: "0.10", source: "SRTM relief within 13 km", kind: "static" },
+        { factor: "Flat-terrain factor", weight: "0.10", source: "SRTM relief (p95 − p5) over the district polygon", kind: "static" },
         { factor: "Built-up / runoff factor", weight: "0.10", source: "Census 2011 population density", kind: "static" },
         { factor: "Trigger frequency T", source: "Share of years with a ≥ 64.5 mm/day (IMD 'heavy rain') day", kind: "climatology" },
       ],
@@ -73,8 +73,8 @@ export const HAZARD_INFO: Record<HazardKey, HazardInfo> = {
     method: {
       formula: "S = gate(relief) × (0.45·slope + 0.25·rain + 0.20·history + 0.10·stream-proximity)   →   P = S × (0.3 + 0.7 × T)",
       inputs: [
-        { factor: "Slope / relief factor", weight: "0.45", source: "SRTM elevation, relief within 13 km", kind: "static" },
-        { factor: "Rain factor (1-day maximum rainfall)", weight: "0.25", source: "NASA POWER daily rainfall, 2014–2023", kind: "climatology" },
+        { factor: "Terrain factor (relief + share of area over 15° / 30°)", weight: "0.45", source: "SRTM-derived tiles, zonal statistics over the district polygon", kind: "static" },
+        { factor: "Rain factor (60% 1-day maximum, 40% wet-season total)", weight: "0.25", source: "NASA POWER daily rainfall, 2014–2023", kind: "climatology" },
         { factor: "Observed landslide history", weight: "0.20", source: "NASA Global Landslide Catalog events within 30 km", kind: "history" },
         { factor: "Stream-proximity factor", weight: "0.10", source: "Natural Earth major rivers", kind: "static" },
         { factor: "Trigger frequency T", source: "Share of years with a ≥ 50 mm/day rainfall day", kind: "climatology" },
@@ -121,7 +121,7 @@ export const HAZARD_INFO: Record<HazardKey, HazardInfo> = {
         { factor: "Trigger frequency T", source: "Share of years with a ≥ 50 mm/day rainfall day", kind: "climatology" },
       ],
       occurrence:
-        "Cloudbursts are too small for a 0.5° climate grid to see directly, so this layer scores where the physical conditions — intense rain over steep, high terrain — make them likely. Treat it as relative susceptibility.",
+        "Cloudbursts are too small for a 0.5° climate grid to see directly, so this layer scores where the physical conditions — intense rain over steep, high terrain — make them likely. Treat it as cloudburst <i>potential</i>: it ranks districts and does not locate events. Sub-hourly IMD gridded or GPM IMERG rainfall would be needed to do better.",
     },
     scale: { title: "How it differs from heavy rain", rows: [["Duration", "Minutes to about an hour"], ["Area", "Tens of km²"], ["Lead time", "Often under 30 minutes"], ["Typical result", "Flash flood + debris flow"]] },
     before: [
@@ -152,14 +152,14 @@ export const HAZARD_INFO: Record<HazardKey, HazardInfo> = {
     season: "Year-round; sharply worse in the monsoon swell and cyclone seasons",
     regions: "West Bengal, Odisha, Andhra Pradesh, Tamil Nadu, Puducherry, Kerala, Karnataka, Gujarat",
     method: {
-      formula: "S = 0.50·coast-distance + 0.30·cyclone-frequency + 0.20·shoreline-change-class   →   P = 0.9 × S",
+      formula: "Index = 0.50·coast-distance + 0.30·cyclone-frequency + 0.20·shoreline-change-class   (susceptibility, not a probability)",
       inputs: [
         { factor: "Distance-to-coast factor", weight: "0.50", source: "Natural Earth 10 m coastline, district centre point", kind: "static" },
         { factor: "Cyclone factor", weight: "0.30", source: "NOAA IBTrACS storms within 150 km, 1990–2023", kind: "history" },
         { factor: "Shoreline-change class", weight: "0.20", source: "State-level class (high / medium / lower) after NCCR shoreline-change studies — indicative", kind: "static" },
       ],
       occurrence:
-        "Only districts within 30 km of the coast are scored; inland districts show 0. The state-level erosion class is an indicative categorisation, not a measured rate — refine it with NCCR shoreline-change data.",
+        "This is a susceptibility index (0–100), not an annual probability: erosion is a shoreline-retreat rate in metres per year and needs multi-year shoreline data (NCCR assessments, Landsat/Sentinel time series). Only districts within 30 km of the coast are scored. The index can lift a district to High hazard but never to Very high on its own.",
     },
     scale: { title: "What it puts at risk", rows: [["Habitations", "Fishing hamlets on the shoreline"], ["Livelihood", "Fishing, salt-pans, coconut and casuarina belts"], ["Infrastructure", "Coastal roads, jetties, drinking-water sources"]] },
     before: [
@@ -232,7 +232,7 @@ export const HAZARD_INFO: Record<HazardKey, HazardInfo> = {
         { factor: "Hill / plains threshold", source: "30 °C above 1,000 m elevation, else 40 °C", kind: "static" },
       ],
       occurrence:
-        "Reanalysis grid cells average out local extremes, so counts are conservative against station records. Heatwaves count at 40% weight in the multi-hazard red-zone score — they do not make land unfit for habitation.",
+        "Reanalysis grid cells average out local extremes, so counts are conservative against station records. Heat does not make land unfit for habitation, so heatwave frequency is excluded from the hazard tier and enters the vulnerability index as a heat-stress factor instead.",
     },
     scale: { title: "IMD heatwave criteria (plains)", rows: [["Heat wave", "Tmax ≥ 40 °C and departure 4.5 – 6.4 °C"], ["Severe heat wave", "Departure > 6.4 °C"], ["By absolute value", "≥ 45 °C heat wave · ≥ 47 °C severe"]] },
     before: [
