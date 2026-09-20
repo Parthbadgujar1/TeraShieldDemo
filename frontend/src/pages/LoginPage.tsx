@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Emblem } from "../components/Layout";
-import { login, type Session } from "../lib/auth";
+import { Link } from "react-router-dom";
+import { DEMO_ACCOUNTS, ROLES, login, type Session } from "../lib/auth";
 
 const FEATURES = [
   ["Multi-hazard screening → habitation red zones", "Flood, landslide, cloudburst, cyclone and coastal-erosion screening for 594 districts, with habitation-level red-zone polygons for a pilot district."],
@@ -60,12 +61,12 @@ export default function LoginPage({ onLogin }: { onLogin: (s: Session) => void }
 
           <div className="demo-creds">
             <div className="label">Demo access</div>
-            <button type="button" onClick={() => { setUser("sih"); setPass("sih2026"); setError(""); }}>
-              <span>Admin · State Disaster Management</span><code>sih / sih2026</code>
-            </button>
-            <button type="button" onClick={() => { setUser("rescue"); setPass("rescue2026"); setError(""); }}>
-              <span>Emergency Response Team</span><code>rescue / rescue2026</code>
-            </button>
+            {DEMO_ACCOUNTS.map((a) => (
+              <button key={a.id} type="button" onClick={() => { setUser(a.id); setPass(a.password); setError(""); }}>
+                <span><b>{ROLES[a.scope].label}</b><span className="tiny muted" style={{ display: "block" }}>{ROLES[a.scope].can[0]}</span></span><code>{a.id} / {a.password}</code>
+              </button>
+            ))}
+            <Link className="btn ghost sm" to="/advisory" style={{ justifyContent: "center", marginTop: 4 }}>Public advisory — no sign-in needed →</Link>
           </div>
           <p className="tiny muted">
             Prototype environment. The demo credentials are checked in the browser; a production deployment would use the

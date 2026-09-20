@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import type { Session } from "../lib/auth";
-import { logout } from "../lib/auth";
+import { ROLES, logout } from "../lib/auth";
 
 const Icon = {
   map: (
@@ -34,6 +34,21 @@ const Icon = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /><path d="m14 6 2 2 4-4" />
     </svg>
   ),
+  clip: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="6" y="4" width="12" height="17" rx="2" /><path d="M9 4h6v3H9zM9 12l2 2 4-4M9 17h6" />
+    </svg>
+  ),
+  pin: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.4" />
+    </svg>
+  ),
+  megaphone: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 11v3h3l8 4V7L6 11H3ZM17 9a4 4 0 0 1 0 6" />
+    </svg>
+  ),
   siren: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M6 18v-5a6 6 0 0 1 12 0v5" /><path d="M4 18h16v3H4zM12 3v2M4.5 6l1.4 1.4M19.5 6l-1.4 1.4" />
@@ -52,15 +67,28 @@ const ADMIN_NAV: NavItem[] = [
   { to: "/validation", label: "Validation & Data", icon: Icon.check },
 ];
 const RESCUE_NAV: NavItem[] = [
-  { to: "/emergency", label: "Emergency Response", icon: Icon.siren },
+  { to: "/emergency", label: "Emergency Operations", icon: Icon.siren },
   { to: "/relocation", label: "Evacuation Planner", icon: Icon.route },
+  { to: "/advisory", label: "Public advisory", icon: Icon.megaphone },
 ];
+const DM_NAV: NavItem[] = [
+  { to: "/district", label: "District Command", icon: Icon.clip },
+  { to: "/gis", label: "GIS Dashboard", icon: Icon.map },
+  { to: "/relocation", label: "Relocation Intelligence", icon: Icon.route },
+  { to: "/plan", label: "Action Plan", icon: Icon.plan },
+  { to: "/validation", label: "Validation & Data", icon: Icon.check },
+];
+const FIELD_NAV: NavItem[] = [
+  { to: "/field", label: "Field Survey", icon: Icon.pin },
+  { to: "/advisory", label: "Public advisory", icon: Icon.megaphone },
+];
+const NAV_BY_SCOPE: Record<Session["scope"], NavItem[]> = { admin: ADMIN_NAV, emergency_team: RESCUE_NAV, district_officer: DM_NAV, field_team: FIELD_NAV };
 
 export default function Layout({ session, children }: { session: Session; children: ReactNode }) {
   const navigate = useNavigate();
   const loc = useLocation();
   const [size, setSize] = useState(0);
-  const nav = session.scope === "admin" ? ADMIN_NAV : RESCUE_NAV;
+  const nav = NAV_BY_SCOPE[session.scope];
   const carry = new URLSearchParams(loc.search).get("d");
   const home = nav[0].to;
   const headerRef = useRef<HTMLElement>(null);
@@ -108,7 +136,7 @@ export default function Layout({ session, children }: { session: Session; childr
             <span className="spacer" />
             <span className="badge-ps">SIH 2026 · PS 26191</span>
             <div className="session">
-              <span className="who" aria-label="Signed in as">👤 {session.user}</span>
+              <span className="who" aria-label="Signed in as" title={ROLES[session.scope].label}>👤 {session.user} <span className="role-tag">{ROLES[session.scope].short}</span></span>
               <button
                 className="btn danger sm"
                 onClick={() => { logout(); navigate("/login", { replace: true }); window.location.reload(); }}
