@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="850" viewBox="0 0 1600 850" font-family="Segoe UI, Arial, Helvetica, sans-serif">
 <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b3d6e"/></marker><marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d32f2f"/></marker><marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a6b7b"/></marker></defs>
 <rect width="1600" height="850" fill="#f6f9fc"/>
-<rect width="1600" height="10" fill="#ff9933"/><rect y="10" width="1600" height="6" fill="#ffffff"/><rect y="16" width="1600" height="6" fill="#138808"/>
 <text x="40" y="66" font-size="30" font-weight="700" fill="#0b3d6e">TeraShield — Technical Architecture</text>
 <text x="40" y="94" font-size="16" fill="#5a6b7b">Static, serverless-friendly: a reproducible Python data pipeline feeds JSON packs served by Vercel to a React + Leaflet app  ·  SIH 2026 · PS 26191</text>
 <rect x="40" y="130" width="300" height="400" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>

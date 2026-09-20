@@ -23,7 +23,6 @@ export default function LoginPage({ onLogin }: { onLogin: (s: Session) => void }
 
   return (
     <div className="login-page">
-      <div className="tri" aria-hidden="true" />
       <div className="login-shell">
         <section className="login-info" aria-label="About TeraShield">
           <Emblem size={58} />

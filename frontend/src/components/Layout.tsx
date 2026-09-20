@@ -118,7 +118,6 @@ export default function Layout({ session, children }: { session: Session; childr
             </div>
           </div>
         </div>
-        <div className="tri" aria-hidden="true" />
         <nav className="nav" aria-label="Primary">
           <div className="nav-in">
             {nav.map((n) => (
