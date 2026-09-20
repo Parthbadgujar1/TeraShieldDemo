@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="940" viewBox="0 0 1600 940" font-family="Segoe UI, Arial, Helvetica, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b3d6e"/></marker><marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d32f2f"/></marker><marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a6b7b"/></marker></defs>
+<rect width="1600" height="940" fill="#f6f9fc"/>
+<rect width="1600" height="10" fill="#ff9933"/><rect y="10" width="1600" height="6" fill="#ffffff"/><rect y="16" width="1600" height="6" fill="#138808"/>
+<text x="40" y="66" font-size="30" font-weight="700" fill="#0b3d6e">TeraShield — Workflow</text>
+<text x="40" y="94" font-size="16" fill="#5a6b7b">From open and official data to a defensible, budgeted relocation plan  ·  SIH 2026 · PS 26191</text>
+<rect x="40" y="130" width="285" height="232" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="40" y="130" width="285" height="36" rx="10" fill="#0b3d6e"/><rect x="40" y="152" width="285" height="14" fill="#0b3d6e"/>
+<circle cx="62" cy="148" r="12" fill="#fff"/><text x="62" y="153" font-size="14" font-weight="800" text-anchor="middle" fill="#0b3d6e">1</text>
+<text x="84" y="154" font-size="16" font-weight="700" fill="#fff">Ingest data</text>
+<text x="54" y="188" font-size="13.5" fill="#1d2a38" font-weight="700">Open + official sources</text>
+<text x="54" y="207.5" font-size="13.5" fill="#1d2a38">• Census 2011, SRTM terrain</text>
+<text x="54" y="227.0" font-size="13.5" fill="#1d2a38">• NASA POWER rain / temperature</text>
+<text x="54" y="246.5" font-size="13.5" fill="#1d2a38">• IBTrACS cyclones, NASA landslides</text>
+<text x="54" y="266.0" font-size="13.5" fill="#1d2a38">• USGS quakes, WorldPop, OSM</text>
+<text x="54" y="285.5" font-size="13.5" fill="#1d2a38">• NDMA SACHET alerts</text>
+<text x="54" y="305.0" font-size="13.5" fill="#1d2a38">Rebuilt by one reproducible</text>
+<text x="54" y="324.5" font-size="13.5" fill="#1d2a38">pipeline; every value tagged live /</text>
+<text x="54" y="344.0" font-size="13.5" fill="#1d2a38">Census / derived / proxy / gap</text>
+<rect x="355" y="130" width="285" height="232" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="355" y="130" width="285" height="36" rx="10" fill="#0b3d6e"/><rect x="355" y="152" width="285" height="14" fill="#0b3d6e"/>
+<circle cx="377" cy="148" r="12" fill="#fff"/><text x="377" y="153" font-size="14" font-weight="800" text-anchor="middle" fill="#0b3d6e">2</text>
+<text x="399" y="154" font-size="16" font-weight="700" fill="#fff">National screening</text>
+<text x="369" y="188" font-size="13.5" fill="#1d2a38" font-weight="700">594 districts · 37 states / UTs</text>
+<text x="369" y="207.5" font-size="13.5" fill="#1d2a38">• Hazard: flood, landslide,</text>
+<text x="369" y="227.0" font-size="13.5" fill="#1d2a38">  cloudburst, cyclone (+ coastal index)</text>
+<text x="369" y="246.5" font-size="13.5" fill="#1d2a38">• Exposure × Vulnerability (12 factors)</text>
+<text x="369" y="266.0" font-size="13.5" fill="#1d2a38">• Risk = H × (½E + ½V)</text>
+<text x="369" y="285.5" font-size="13.5" fill="#1d2a38">• Priority → Immediate / Short / Medium</text>
+<text x="369" y="305.0" font-size="13.5" fill="#1d2a38" font-weight="700">Output: hazard TIERS —</text>
+<text x="369" y="324.5" font-size="13.5" fill="#1d2a38">a district is not a red zone</text>
+<rect x="670" y="130" width="285" height="232" rx="10" fill="#ffffff" stroke="#f57c00" stroke-width="1.6"/>
+<rect x="670" y="130" width="285" height="36" rx="10" fill="#f57c00"/><rect x="670" y="152" width="285" height="14" fill="#f57c00"/>
+<circle cx="692" cy="148" r="12" fill="#fff"/><text x="692" y="153" font-size="14" font-weight="800" text-anchor="middle" fill="#f57c00">3</text>
+<text x="714" y="154" font-size="16" font-weight="700" fill="#fff">72 h alert overlay</text>
+<text x="684" y="188" font-size="13.5" fill="#1d2a38" font-weight="700">Forecast can only RAISE alerts</text>
+<text x="684" y="207.5" font-size="13.5" fill="#1d2a38">• Open-Meteo rain / wind / heat</text>
+<text x="684" y="227.0" font-size="13.5" fill="#1d2a38">• Replay of real events (Beas 2023,</text>
+<text x="684" y="246.5" font-size="13.5" fill="#1d2a38">  Wayanad 2024, Michaung 2023)</text>
+<text x="684" y="266.0" font-size="13.5" fill="#1d2a38">• NDMA SACHET official alerts</text>
+<text x="684" y="285.5" font-size="13.5" fill="#1d2a38">  shown beside the model</text>
+<text x="684" y="305.0" font-size="13.5" fill="#1d2a38" font-weight="700">A dry week never relabels land</text>
+<text x="684" y="324.5" font-size="13.5" fill="#1d2a38">as safe (max of baseline, live)</text>
+<rect x="985" y="130" width="285" height="232" rx="10" fill="#ffffff" stroke="#d32f2f" stroke-width="1.6"/>
+<rect x="985" y="130" width="285" height="36" rx="10" fill="#d32f2f"/><rect x="985" y="152" width="285" height="14" fill="#d32f2f"/>
+<circle cx="1007" cy="148" r="12" fill="#fff"/><text x="1007" y="153" font-size="14" font-weight="800" text-anchor="middle" fill="#d32f2f">4</text>
+<text x="1029" y="154" font-size="16" font-weight="700" fill="#fff">Habitation red zones</text>
+<text x="999" y="188" font-size="13.5" fill="#1d2a38" font-weight="700">Pilot district (Wayanad)</text>
+<text x="999" y="207.5" font-size="13.5" fill="#1d2a38">• 37 m terrain: slope, height above</text>
+<text x="999" y="227.0" font-size="13.5" fill="#1d2a38">  streams, run-out below steep ground</text>
+<text x="999" y="246.5" font-size="13.5" fill="#1d2a38">• RED / ORANGE polygons</text>
+<text x="999" y="266.0" font-size="13.5" fill="#1d2a38">• OSM buildings + WorldPop people</text>
+<text x="999" y="285.5" font-size="13.5" fill="#1d2a38">• 240 habitations classified,</text>
+<text x="999" y="305.0" font-size="13.5" fill="#1d2a38">  reasons per habitation</text>
+<text x="999" y="324.5" font-size="13.5" fill="#1d2a38" font-weight="700">Red zone = unsuitable for living</text>
+<rect x="1300" y="130" width="285" height="232" rx="10" fill="#ffffff" stroke="#138808" stroke-width="1.6"/>
+<rect x="1300" y="130" width="285" height="36" rx="10" fill="#138808"/><rect x="1300" y="152" width="285" height="14" fill="#138808"/>
+<circle cx="1322" cy="148" r="12" fill="#fff"/><text x="1322" y="153" font-size="14" font-weight="800" text-anchor="middle" fill="#138808">5</text>
+<text x="1344" y="154" font-size="16" font-weight="700" fill="#fff">Capacity &amp; site screening</text>
+<text x="1314" y="188" font-size="13.5" fill="#1d2a38" font-weight="700">Candidate sites (≥ 2 ha, gentle,</text>
+<text x="1314" y="207.5" font-size="13.5" fill="#1d2a38">clear of steep ground &amp; streams)</text>
+<text x="1314" y="227.0" font-size="13.5" fill="#1d2a38">• Hard reject: protected, too close</text>
+<text x="1314" y="246.5" font-size="13.5" fill="#1d2a38">  to red terrain, beyond livelihood reach</text>
+<text x="1314" y="266.0" font-size="13.5" fill="#1d2a38">• Land status → approval route</text>
+<text x="1314" y="285.5" font-size="13.5" fill="#1d2a38">• Capacity = min(space, water, access)</text>
+<text x="1314" y="305.0" font-size="13.5" fill="#1d2a38">• Durability: will families stay?</text>
+<rect x="1300" y="440" width="285" height="232" rx="10" fill="#ffffff" stroke="#138808" stroke-width="1.6"/>
+<rect x="1300" y="440" width="285" height="36" rx="10" fill="#138808"/><rect x="1300" y="462" width="285" height="14" fill="#138808"/>
+<circle cx="1322" cy="458" r="12" fill="#fff"/><text x="1322" y="463" font-size="14" font-weight="800" text-anchor="middle" fill="#138808">6</text>
+<text x="1344" y="464" font-size="16" font-weight="700" fill="#fff">Permanent resettlement</text>
+<text x="1314" y="498" font-size="13.5" fill="#1d2a38" font-weight="700">Months to years · one village,</text>
+<text x="1314" y="517.5" font-size="13.5" fill="#1d2a38">one site</text>
+<text x="1314" y="537.0" font-size="13.5" fill="#1d2a38">• Verify → notify → land → build → move</text>
+<text x="1314" y="556.5" font-size="13.5" fill="#1d2a38">• Timeline vs next monsoon</text>
+<text x="1314" y="576.0" font-size="13.5" fill="#1d2a38">• Revenue / private / forest route:</text>
+<text x="1314" y="595.5" font-size="13.5" fill="#1d2a38">  ~3 to 24 months of approvals</text>
+<text x="1314" y="615.0" font-size="13.5" fill="#1d2a38">• Forest Rights Act check</text>
+<rect x="985" y="440" width="285" height="232" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="985" y="440" width="285" height="36" rx="10" fill="#0b3d6e"/><rect x="985" y="462" width="285" height="14" fill="#0b3d6e"/>
+<circle cx="1007" cy="458" r="12" fill="#fff"/><text x="1007" y="463" font-size="14" font-weight="800" text-anchor="middle" fill="#0b3d6e">7</text>
+<text x="1029" y="464" font-size="16" font-weight="700" fill="#fff">State Action Plan</text>
+<text x="999" y="498" font-size="13.5" fill="#1d2a38" font-weight="700">Immediate · Short · Medium lists</text>
+<text x="999" y="517.5" font-size="13.5" fill="#1d2a38">• Reasons per habitation</text>
+<text x="999" y="537.0" font-size="13.5" fill="#1d2a38">• Budget cap: best set to fund</text>
+<text x="999" y="556.5" font-size="13.5" fill="#1d2a38">• Protect vs adapt vs relocate,</text>
+<text x="999" y="576.0" font-size="13.5" fill="#1d2a38">  break-even years</text>
+<text x="999" y="595.5" font-size="13.5" fill="#1d2a38">• Export CSV · GeoJSON ·</text>
+<text x="999" y="615.0" font-size="13.5" fill="#1d2a38">  Markdown · PDF</text>
+<rect x="670" y="440" width="285" height="232" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="670" y="440" width="285" height="36" rx="10" fill="#0b3d6e"/><rect x="670" y="462" width="285" height="14" fill="#0b3d6e"/>
+<circle cx="692" cy="458" r="12" fill="#fff"/><text x="692" y="463" font-size="14" font-weight="800" text-anchor="middle" fill="#0b3d6e">8</text>
+<text x="714" y="464" font-size="16" font-weight="700" fill="#fff">Zone Register</text>
+<text x="684" y="498" font-size="13.5" fill="#1d2a38" font-weight="700">Screened → Verified → Notified →</text>
+<text x="684" y="517.5" font-size="13.5" fill="#1d2a38">Relocating → Vacated → Monitored</text>
+<text x="684" y="537.0" font-size="13.5" fill="#1d2a38">• Live evidence can only raise a zone</text>
+<text x="684" y="556.5" font-size="13.5" fill="#1d2a38">• Lowering needs evidence + sign-off</text>
+<text x="684" y="576.0" font-size="13.5" fill="#1d2a38">• SHA-256 hash-chained audit log</text>
+<text x="684" y="595.5" font-size="13.5" fill="#1d2a38">• Snapshot of inputs at each step</text>
+<rect x="355" y="440" width="285" height="232" rx="10" fill="#ffffff" stroke="#5a6b7b" stroke-width="1.6"/>
+<rect x="355" y="440" width="285" height="36" rx="10" fill="#5a6b7b"/><rect x="355" y="462" width="285" height="14" fill="#5a6b7b"/>
+<circle cx="377" cy="458" r="12" fill="#fff"/><text x="377" y="463" font-size="14" font-weight="800" text-anchor="middle" fill="#5a6b7b">9</text>
+<text x="399" y="464" font-size="16" font-weight="700" fill="#fff">Field verification</text>
+<text x="369" y="498" font-size="13.5" fill="#1d2a38" font-weight="700">Ground truth closes the loop</text>
+<text x="369" y="517.5" font-size="13.5" fill="#1d2a38">• GSI / state survey, DM order</text>
+<text x="369" y="537.0" font-size="13.5" fill="#1d2a38">• New scars, cracks, erosion</text>
+<text x="369" y="556.5" font-size="13.5" fill="#1d2a38">• Backtest: frozen on 2014, tested</text>
+<text x="369" y="576.0" font-size="13.5" fill="#1d2a38">  on later landslides (AUC 0.78)</text>
+<text x="369" y="595.5" font-size="13.5" fill="#1d2a38">• Rank stability over 1,000 weights</text>
+<rect x="40" y="440" width="285" height="232" rx="10" fill="#ffffff" stroke="#f57c00" stroke-width="1.6"/>
+<rect x="40" y="440" width="285" height="36" rx="10" fill="#f57c00"/><rect x="40" y="462" width="285" height="14" fill="#f57c00"/>
+<circle cx="62" cy="458" r="12" fill="#fff"/><text x="62" y="463" font-size="14" font-weight="800" text-anchor="middle" fill="#f57c00">E</text>
+<text x="84" y="464" font-size="16" font-weight="700" fill="#fff">Emergency evacuation</text>
+<text x="54" y="498" font-size="13.5" fill="#1d2a38" font-weight="700">Parallel track · hours to days</text>
+<text x="54" y="517.5" font-size="13.5" fill="#1d2a38">• 48 sampled sites, hard-reject</text>
+<text x="54" y="537.0" font-size="13.5" fill="#1d2a38">  high local susceptibility</text>
+<text x="54" y="556.5" font-size="13.5" fill="#1d2a38">• Road routes scored vs forecast</text>
+<text x="54" y="576.0" font-size="13.5" fill="#1d2a38">• Pareto ranking, buses &amp; waves</text>
+<text x="54" y="595.5" font-size="13.5" fill="#1d2a38">• Re-route when a road is blocked</text>
+<text x="54" y="615.0" font-size="13.5" fill="#1d2a38" font-weight="700">Not relocation — kept separate</text>
+<path d="M327,246.0 L351,246.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M642,246.0 L666,246.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M957,246.0 L981,246.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M1272,246.0 L1296,246.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M1442.5,364 L1442.5,436" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M1298,556.0 L1274,556.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M983,556.0 L959,556.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M668,556.0 L644,556.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M812.5,364 L812.5,396 L182.5,396 L182.5,436" fill="none" stroke="#f57c00" stroke-width="2.4" marker-end="url(#a)"/>
+<text x="194.5" y="389" font-size="12.5" fill="#f57c00" text-anchor="start" font-weight="700">alerts trigger evacuation planning (hours-days)</text>
+<path d="M497.5,674 L497.5,702 L970,702 L970,326 L981,326" fill="none" stroke="#d32f2f" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#r)"/>
+<text x="509.5" y="722" font-size="12.5" fill="#d32f2f" text-anchor="start" font-weight="700">feedback: new evidence re-scores zones - they ratchet up freely, down only with evidence + officer sign-off</text>
+<rect x="40" y="750" width="1545" height="150" rx="12" fill="#ffffff" stroke="#c9d6e3"/>
+<text x="60" y="780" font-size="13" fill="#0b3d6e" text-anchor="start" font-weight="800">WHO USES IT</text>
+<rect x="60" y="792" width="250" height="26" rx="13" fill="#0b3d6e"/><text x="185.0" y="810" font-size="12.5" font-weight="700" text-anchor="middle" fill="#fff">SDMA analyst · builds the plan</text>
+<rect x="60" y="826" width="250" height="26" rx="13" fill="#138808"/><text x="185.0" y="844" font-size="12.5" font-weight="700" text-anchor="middle" fill="#fff">District Collector · approves &amp; notifies</text>
+<rect x="60" y="860" width="250" height="26" rx="13" fill="#f57c00"/><text x="185.0" y="878" font-size="12.5" font-weight="700" text-anchor="middle" fill="#fff">Emergency team · runs evacuation</text>
+<text x="350" y="780" font-size="13" fill="#0b3d6e" text-anchor="start" font-weight="800">WHAT COMES OUT</text>
+<text x="350" y="806" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Hazard tiers for 594 districts</text>
+<text x="350" y="827" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Habitation-level red / orange polygons</text>
+<text x="350" y="848" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Ranked relocation lists by horizon</text>
+<text x="350" y="869" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Budgeted plan: CSV · GeoJSON · PDF</text>
+<text x="350" y="890" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Tamper-evident decision register</text>
+<text x="760" y="780" font-size="13" fill="#0b3d6e" text-anchor="start" font-weight="800">DESIGN RULES</text>
+<text x="760" y="806" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• A district is a screening tier, never a red zone</text>
+<text x="760" y="827" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Forecasts only raise alerts; baselines change on evidence</text>
+<text x="760" y="848" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Evacuation ≠ relocation: two tracks, two timelines</text>
+<text x="760" y="869" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Hard rejects beat weighted scores</text>
+<text x="760" y="890" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Every figure says live / Census / proxy / needs survey</text>
+<text x="1250" y="780" font-size="13" fill="#0b3d6e" text-anchor="start" font-weight="800">PILOT → SCALE</text>
+<text x="1250" y="806" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Add a district: run one script</text>
+<text x="1250" y="827" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Bring your own data: CSV / GeoJSON</text>
+<text x="1250" y="848" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Static site: no server needed</text>
+<text x="1250" y="869" font-size="14" fill="#1d2a38" text-anchor="start" font-weight="400">• Production: SSO + server register</text>
+</svg>

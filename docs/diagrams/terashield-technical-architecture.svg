@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="850" viewBox="0 0 1600 850" font-family="Segoe UI, Arial, Helvetica, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b3d6e"/></marker><marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d32f2f"/></marker><marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a6b7b"/></marker></defs>
+<rect width="1600" height="850" fill="#f6f9fc"/>
+<rect width="1600" height="10" fill="#ff9933"/><rect y="10" width="1600" height="6" fill="#ffffff"/><rect y="16" width="1600" height="6" fill="#138808"/>
+<text x="40" y="66" font-size="30" font-weight="700" fill="#0b3d6e">TeraShield — Technical Architecture</text>
+<text x="40" y="94" font-size="16" fill="#5a6b7b">Static, serverless-friendly: a reproducible Python data pipeline feeds JSON packs served by Vercel to a React + Leaflet app  ·  SIH 2026 · PS 26191</text>
+<rect x="40" y="130" width="300" height="400" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="40" y="130" width="300" height="36" rx="10" fill="#0b3d6e"/><rect x="40" y="152" width="300" height="14" fill="#0b3d6e"/>
+<text x="54" y="154" font-size="16" font-weight="700" fill="#fff">1 · Data sources</text>
+<text x="54" y="188" font-size="14" fill="#1d2a38" font-weight="700">Official / government</text>
+<text x="54" y="208" font-size="14" fill="#1d2a38">• Census of India 2011 (districts)</text>
+<text x="54" y="228" font-size="14" fill="#1d2a38">• NDMA SACHET CAP alert feed</text>
+<text x="54" y="248" font-size="14" fill="#1d2a38">• (planned) IMD, CWC, GSI, Bhuvan</text>
+<text x="54" y="268" font-size="14" fill="#1d2a38" font-weight="700">Open scientific</text>
+<text x="54" y="288" font-size="14" fill="#1d2a38">• AWS Terrain Tiles (SRTM)</text>
+<text x="54" y="308" font-size="14" fill="#1d2a38">• NASA POWER (MERRA-2) rain, temp</text>
+<text x="54" y="328" font-size="14" fill="#1d2a38">• NOAA IBTrACS cyclone tracks</text>
+<text x="54" y="348" font-size="14" fill="#1d2a38">• NASA Global Landslide Catalog</text>
+<text x="54" y="368" font-size="14" fill="#1d2a38">• USGS earthquakes, Natural Earth</text>
+<text x="54" y="388" font-size="14" fill="#1d2a38">• WorldPop 2020 (1 km)</text>
+<text x="54" y="408" font-size="14" fill="#1d2a38">• Open-Meteo ERA5 archive (replays)</text>
+<text x="54" y="428" font-size="14" fill="#1d2a38" font-weight="700">Community</text>
+<text x="54" y="448" font-size="14" fill="#1d2a38">• OpenStreetMap: buildings, places,</text>
+<text x="54" y="468" font-size="14" fill="#1d2a38">  waterways, roads, land use</text>
+<rect x="400" y="130" width="300" height="400" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="400" y="130" width="300" height="36" rx="10" fill="#0b3d6e"/><rect x="400" y="152" width="300" height="14" fill="#0b3d6e"/>
+<text x="414" y="154" font-size="16" font-weight="700" fill="#fff">2 · Data pipeline (Python)</text>
+<text x="414" y="188" font-size="13.6" fill="#1d2a38" font-weight="700">data-pipeline/  (offline, cached)</text>
+<text x="414" y="207.6" font-size="13.6" fill="#1d2a38">• fetch_dem.py  zonal terrain stats</text>
+<text x="414" y="227.2" font-size="13.6" fill="#1d2a38">• fetch_remote.py  climate cells</text>
+<text x="414" y="246.79999999999998" font-size="13.6" fill="#1d2a38">• build_india_dataset.py</text>
+<text x="414" y="266.4" font-size="13.6" fill="#1d2a38">  hazard model, exposure, vulnerability,</text>
+<text x="414" y="286.0" font-size="13.6" fill="#1d2a38">  priority, 1,000-run rank stability</text>
+<text x="414" y="305.6" font-size="13.6" fill="#1d2a38">• build_pilot.py  habitation polygons</text>
+<text x="414" y="325.20000000000005" font-size="13.6" fill="#1d2a38">  (DEM, HAND, OSM, WorldPop)</text>
+<text x="414" y="344.80000000000007" font-size="13.6" fill="#1d2a38">• validate.py  temporal hold-out</text>
+<text x="414" y="364.4000000000001" font-size="13.6" fill="#1d2a38">• build_replays.py  ERA5 events</text>
+<text x="414" y="384.0000000000001" font-size="13.6" fill="#1d2a38">• fetch_alerts.py  SACHET snapshot</text>
+<text x="414" y="403.60000000000014" font-size="13.6" fill="#1d2a38">• fetch_seismic.py  USGS context</text>
+<text x="414" y="423.20000000000016" font-size="13.6" fill="#1d2a38" font-weight="700">Libs: numpy · shapely · scipy · Pillow</text>
+<text x="414" y="442.8000000000002" font-size="13.6" fill="#1d2a38">GitHub Actions: refresh alerts every 6 h</text>
+<rect x="760" y="130" width="250" height="400" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="760" y="130" width="250" height="36" rx="10" fill="#0b3d6e"/><rect x="760" y="152" width="250" height="14" fill="#0b3d6e"/>
+<text x="774" y="154" font-size="16" font-weight="700" fill="#fff">3 · Static data packs</text>
+<text x="774" y="188" font-size="13.6" fill="#1d2a38" font-weight="700">frontend/public/data</text>
+<text x="774" y="207.6" font-size="13.6" fill="#1d2a38">• districts.json  729 KB</text>
+<text x="774" y="227.2" font-size="13.6" fill="#1d2a38">• geo_districts / states  polygons</text>
+<text x="774" y="246.79999999999998" font-size="13.6" fill="#1d2a38">• history.json, coast.json, meta</text>
+<text x="774" y="266.4" font-size="13.6" fill="#1d2a38">• pilot_wayanad.json  660 KB</text>
+<text x="774" y="286.0" font-size="13.6" fill="#1d2a38">  red / orange polygons, villages,</text>
+<text x="774" y="305.6" font-size="13.6" fill="#1d2a38">  sites</text>
+<text x="774" y="325.20000000000005" font-size="13.6" fill="#1d2a38">• validation.json  backtest</text>
+<text x="774" y="344.80000000000007" font-size="13.6" fill="#1d2a38">• replays.json  3 real events</text>
+<text x="774" y="364.4000000000001" font-size="13.6" fill="#1d2a38">• alerts.json  official alerts</text>
+<text x="774" y="384.0000000000001" font-size="13.6" fill="#1d2a38"></text>
+<text x="774" y="403.60000000000014" font-size="13.6" fill="#1d2a38" font-weight="700">Vercel CDN</text>
+<text x="774" y="423.20000000000016" font-size="13.6" fill="#1d2a38">Versioned ?v=build id so new code</text>
+<text x="774" y="442.8000000000002" font-size="13.6" fill="#1d2a38">never meets stale cached data</text>
+<rect x="1070" y="130" width="500" height="400" rx="10" fill="#ffffff" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="1070" y="130" width="500" height="36" rx="10" fill="#0b3d6e"/><rect x="1070" y="152" width="500" height="14" fill="#0b3d6e"/>
+<text x="1084" y="154" font-size="16" font-weight="700" fill="#fff">4 · Browser application  (React 18 · TypeScript · Vite)</text>
+<text x="1084" y="188" font-size="13.2" fill="#1d2a38" font-weight="700">Logic layer  src/lib  (unit-tested)</text>
+<text x="1084" y="207.2" font-size="13.2" fill="#1d2a38">• risk.ts  tiers, zone rules</text>
+<text x="1084" y="226.39999999999998" font-size="13.2" fill="#1d2a38">• liveRisk.ts  alert overlay = max(baseline, live)</text>
+<text x="1084" y="245.59999999999997" font-size="13.2" fill="#1d2a38">• relocation.ts  evacuation: 48 sites, hard rejects, Pareto</text>
+<text x="1084" y="264.79999999999995" font-size="13.2" fill="#1d2a38">• permanent.ts  land status, capacity, durability, timeline</text>
+<text x="1084" y="283.99999999999994" font-size="13.2" fill="#1d2a38">• plan.ts  horizons, costs, budget selection, exports</text>
+<text x="1084" y="303.19999999999993" font-size="13.2" fill="#1d2a38">• lifecycle.ts  state machine + SHA-256 hash chain</text>
+<text x="1084" y="322.3999999999999" font-size="13.2" fill="#1d2a38">• dataLab.ts  CSV / GeoJSON validation, point-in-polygon</text>
+<text x="1084" y="341.5999999999999" font-size="13.2" fill="#1d2a38">• evidence.ts  completeness · routing.ts · osm.ts · live.ts</text>
+<text x="1084" y="360.7999999999999" font-size="13.2" fill="#1d2a38" font-weight="700">Pages (lazy-loaded routes)</text>
+<text x="1084" y="379.9999999999999" font-size="13.2" fill="#1d2a38">GIS Dashboard · Hazard Intelligence · Exposure &amp; Vulnerability</text>
+<text x="1084" y="399.1999999999999" font-size="13.2" fill="#1d2a38">Relocation (permanent | evacuation) · Action Plan</text>
+<text x="1084" y="418.39999999999986" font-size="13.2" fill="#1d2a38">Validation &amp; Data (Backtest | Data Lab | Zone Register) · Emergency</text>
+<text x="1084" y="437.59999999999985" font-size="13.2" fill="#1d2a38" font-weight="700">Map: Leaflet, canvas renderer · basemaps Esri / OSM</text>
+<text x="1084" y="456.79999999999984" font-size="13.2" fill="#1d2a38" font-weight="700">Browser storage (localStorage): session, register, uploads, caches</text>
+<path d="M342,330.0 L398,330.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M702,330.0 L758,330.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<path d="M1012,330.0 L1068,330.0" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<rect x="1070" y="560" width="500" height="130" rx="10" fill="#fff8ee" stroke="#f57c00" stroke-width="1.6"/>
+<rect x="1070" y="560" width="500" height="36" rx="10" fill="#f57c00"/><rect x="1070" y="582" width="500" height="14" fill="#f57c00"/>
+<text x="1084" y="584" font-size="16" font-weight="700" fill="#fff">Live services called directly from the browser</text>
+<text x="1084" y="618" font-size="12.6" fill="#1d2a38">• Open-Meteo forecast + GloFAS river discharge   • Overpass (OSM counts, villages)</text>
+<text x="1084" y="636.6" font-size="12.6" fill="#1d2a38">• OSRM road routing   • Esri / OSM tiles   • Google Maps embed (keyless)</text>
+<text x="1084" y="655.2" font-size="12.6" fill="#1d2a38">Timeouts → cached last-known-good + banner; never invented values</text>
+<path d="M1320,560 L1320,534" fill="none" stroke="#f57c00" stroke-width="2.4" marker-end="url(#a)"/>
+<text x="1334" y="552" font-size="12" fill="#f57c00" text-anchor="start" font-weight="700">live + cached</text>
+<rect x="400" y="560" width="300" height="130" rx="10" fill="#f0f7f1" stroke="#138808" stroke-width="1.6"/>
+<rect x="400" y="560" width="300" height="36" rx="10" fill="#138808"/><rect x="400" y="582" width="300" height="14" fill="#138808"/>
+<text x="414" y="584" font-size="16" font-weight="700" fill="#fff">Quality &amp; delivery</text>
+<text x="414" y="618" font-size="12.6" fill="#1d2a38">• GitHub Actions: type-check,</text>
+<text x="414" y="636.6" font-size="12.6" fill="#1d2a38">  66 frontend + 56 backend tests, build</text>
+<text x="414" y="655.2" font-size="12.6" fill="#1d2a38">• Push to main → Vercel auto-deploy</text>
+<path d="M550,560 L550,534" fill="none" stroke="#138808" stroke-width="2.4" marker-end="url(#a)"/>
+<rect x="760" y="560" width="250" height="130" rx="10" fill="#eef3fa" stroke="#0b3d6e" stroke-width="1.6"/>
+<rect x="760" y="560" width="250" height="36" rx="10" fill="#0b3d6e"/><rect x="760" y="582" width="250" height="14" fill="#0b3d6e"/>
+<text x="774" y="584" font-size="16" font-weight="700" fill="#fff">Deployment</text>
+<text x="774" y="618" font-size="12.6" fill="#1d2a38">• Vercel, Root Directory frontend</text>
+<text x="774" y="636.6" font-size="12.6" fill="#1d2a38">• No env vars, no API keys</text>
+<text x="774" y="655.2" font-size="12.6" fill="#1d2a38">• vercel.json: SPA rewrite + caching</text>
+<path d="M885,560 L885,534" fill="none" stroke="#0b3d6e" stroke-width="2.4" marker-end="url(#a)"/>
+<rect x="40" y="560" width="300" height="130" rx="10" fill="#f4f4f6" stroke="#5a6b7b" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="40" y="560" width="300" height="36" rx="10" fill="#5a6b7b"/><rect x="40" y="582" width="300" height="14" fill="#5a6b7b"/>
+<text x="54" y="584" font-size="16" font-weight="700" fill="#fff">Optional backend (not deployed)</text>
+<text x="54" y="618" font-size="12.6" fill="#1d2a38">• FastAPI pilot engine, PostGIS schema</text>
+<text x="54" y="636.6" font-size="12.6" fill="#1d2a38">• Chamoli + Kendrapara pilots</text>
+<text x="54" y="655.2" font-size="12.6" fill="#1d2a38">• Kept for the production path</text>
+<rect x="40" y="716" width="1530" height="110" rx="12" fill="#ffffff" stroke="#c9d6e3"/>
+<text x="60" y="746" font-size="13" fill="#0b3d6e" text-anchor="start" font-weight="800">PRODUCTION PATH  (what changes when it goes operational)</text>
+<text x="60" y="774" font-size="13.5" fill="#1d2a38" text-anchor="start" font-weight="400">• Identity: SDMA single sign-on, roles</text>
+<text x="60" y="796" font-size="13.5" fill="#1d2a38" text-anchor="start" font-weight="400">• Server: PostGIS + API, append-only register</text>
+<text x="445" y="774" font-size="13.5" fill="#1d2a38" text-anchor="start" font-weight="400">• Feeds: IMD / CWC / SACHET via proxy</text>
+<text x="445" y="796" font-size="13.5" fill="#1d2a38" text-anchor="start" font-weight="400">• Ground truth: GSI inventory, field surveys</text>
+<text x="830" y="774" font-size="13.5" fill="#1d2a38" text-anchor="start" font-weight="400">• Data: habitation master list, Bhulekh,</text>
+<text x="830" y="796" font-size="13.5" fill="#1d2a38" text-anchor="start" font-weight="400">• forest boundaries, UDISE+, HFR facilities</text>
+<text x="1215" y="774" font-size="13.5" fill="#1d2a38" text-anchor="start" font-weight="400">• Hosting: NIC / gov cloud, CERT-In audit,</text>
+<text x="1215" y="796" font-size="13.5" fill="#1d2a38" text-anchor="start" font-weight="400">• DPDP Act compliance, offline field app</text>
+</svg>
