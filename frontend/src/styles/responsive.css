@@ -1,0 +1,149 @@
+/* ============================================================================
+   Responsive layer — loaded last. Phones (320+), large phones, tablets (portrait and
+   landscape), laptops, desktops and very wide screens. Mobile-first fixes for overflow,
+   touch targets, notches and dynamic browser toolbars.
+   ============================================================================ */
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* the layer badge sits beside the Leaflet zoom buttons, never under them */
+.map-badge { left: 58px; top: 14px; }
+img, video, iframe { max-width: 100%; }
+
+/* Any table that is not already inside a .table-wrap scrolls sideways instead of widening the whole page. */
+:not(.table-wrap):not(.matrix-wrap) > table.t { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Long words, URLs and identifiers wrap instead of pushing the layout. */
+.notice, .card-pad, .kv dd, .kv dt, li, .stat span, .page-head p { overflow-wrap: anywhere; }
+
+/* Segmented controls can be wider than a phone: scroll them rather than overflow. */
+.seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.seg::-webkit-scrollbar { display: none; }
+.seg button { flex: none; }
+.card-head .seg, .card-head .row { max-width: 100%; }
+
+/* Notches and rounded corners (needs viewport-fit=cover in index.html). */
+.gov-top-in, .brandbar-in, .nav-in, .page, .footer-in {
+  padding-left: max(var(--pad-x, 12px), env(safe-area-inset-left));
+  padding-right: max(var(--pad-x, 12px), env(safe-area-inset-right));
+}
+.gov-top-in, .brandbar-in, .page, .footer-in { --pad-x: 20px; }
+.nav-in { --pad-x: 12px; }
+
+/* ---------- large screens ---------- */
+@media (min-width: 1800px) {
+  html { font-size: 16px; }
+  .page, .brandbar-in, .nav-in, .gov-top-in, .footer-in { max-width: 1840px; }
+}
+
+/* ---------- laptops and small desktops ---------- */
+@media (min-width: 901px) and (max-width: 1280px) {
+  .gis { grid-template-columns: 300px minmax(0, 1fr); }
+  .drawer { width: 380px; }
+}
+
+/* ---------- tablets (portrait and landscape) ---------- */
+@media (max-width: 1024px) {
+  .nav a { padding: 12px 14px; }
+  .brand-sub { font-size: 0.68rem; }
+  .card-head { padding: 10px 12px; }
+  .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .em-banner { flex-wrap: wrap; }
+}
+
+/* ---------- stacked GIS layout (≤ 900px): keep the badge clear of the zoom buttons ---------- */
+@media (max-width: 900px) {
+  .map-badge { font-size: 0.74rem; left: 58px; top: 14px; max-width: calc(100% - 180px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* ---------- phones ---------- */
+@media (max-width: 720px) {
+  .gov-top-in, .brandbar-in, .page, .footer-in, .nav-in { --pad-x: 12px; }
+
+  /* header: brand on the first row, sign-out beside it, navigation scrolls underneath */
+  .brandbar-in { flex-wrap: wrap; row-gap: 6px; }
+  .brand { min-width: 0; flex: 1 1 auto; }
+  .brand-title { font-size: 1.2rem; }
+  .brand-sub { display: none; }
+  .spacer { display: none; }
+  .session { margin-left: auto; gap: 8px; }
+  .gov-top-in { flex-wrap: wrap; gap: 4px 8px; }
+  .gov-top-in > span:first-child { font-size: 0.68rem; line-height: 1.25; flex: 1 1 220px; }
+  .nav a { padding: 11px 12px; font-size: 0.86rem; }
+  .nav svg { width: 16px; height: 16px; }
+
+  /* inputs at 16px stop iOS from zooming the page when a field is focused */
+  select, input[type="text"], input[type="search"], input[type="number"], input[type="password"], textarea { font-size: 16px; }
+
+  /* stat tiles stay two-up on ordinary phones; single column only on the smallest */
+  .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat b { font-size: 1.5rem; }
+
+  .page-head { align-items: flex-start; }
+  h1 { font-size: 1.3rem; }
+  .card-pad { padding: 12px 12px; }
+
+  /* maps keep a usable, viewport-relative height (the pilot map has an inline height) */
+  .rmap-wrap { height: 62dvh !important; min-height: 320px; }
+  .em-map { height: 380px; }
+  .gis-map { height: 74dvh; min-height: 460px; }
+  .gis-panel { max-height: 70dvh; }
+  .drawer { height: 72%; }
+  .map-tools .seg button { padding: 6px 9px; }
+
+  .filters { align-items: stretch; }
+  .filters .field { flex: 1 1 100%; min-width: 0 !important; }
+  .stepper { -webkit-overflow-scrolling: touch; }
+  .tabs button { padding: 10px 12px; }
+  .em-banner { padding: 10px 12px; }
+  .em-seg { display: none; } /* the same switch sits in the card directly below */
+  .login-form .demo-creds button { flex-wrap: wrap; }
+}
+
+/* ---------- login: on stacked layouts the form comes first, the pitch second ---------- */
+@media (max-width: 820px) {
+  .login-form { order: -1; border: 1px solid var(--line); border-radius: 14px 14px 0 0; }
+  .login-info { border-radius: 0 0 14px 14px; }
+}
+
+/* ---------- smallest phones (≤ 380px) ---------- */
+@media (max-width: 480px) {
+  .tabs button { flex: 1 0 auto; }
+  .tabs button .tiny { display: none; }
+}
+@media (max-width: 340px) {
+  .g4 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 380px) {
+  html { font-size: 13.5px; }
+  .session .who { display: none; }
+  .brand-title { font-size: 1.1rem; }
+  .nav a { padding: 10px 10px; gap: 5px; }
+  .btn { padding-left: 10px; padding-right: 10px; }
+  .card-head { gap: 8px; }
+  .map-hint { display: none; }
+}
+
+/* ---------- landscape phones: give the map the full short height ---------- */
+@media (max-height: 520px) and (orientation: landscape) {
+  .gis-map { height: 100dvh; min-height: 360px; }
+  .gis-panel { max-height: 80dvh; }
+  .drawer { height: 92%; }
+  .rmap-wrap { height: 80dvh !important; }
+}
+
+/* ---------- touch screens: comfortable tap targets ---------- */
+@media (pointer: coarse) {
+  .btn, .chip, .seg button, .tabs button, .toplist button, .hz-row, .demo-creds button, .gov-top .size-btns button { min-height: 40px; }
+  .btn.sm { min-height: 36px; }
+  select, input[type="text"], input[type="search"], input[type="number"], input[type="password"] { min-height: 42px; }
+  input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; }
+  input[type="range"] { min-height: 32px; }
+  table.t tr.click td { padding-top: 9px; padding-bottom: 9px; }
+  .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; }
+}
+
+/* hover-only affordances are not relied on for touch */
+@media (hover: none) {
+  .ts-tip { display: none; }
+}
